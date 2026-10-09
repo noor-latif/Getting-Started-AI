@@ -20,39 +20,9 @@ Optional tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEV
 
 ## Architecture
 
-```mermaid
-graph LR
-    subgraph Phone
-        TG[Telegram app<br/>voice notes in/out]
-        TS[<b>Tailscale</b><br/>Android app<br/>com.tailscale.ipn]
-    end
+![Architecture: phone (Telegram voice, Tailscale, browser) → Telegram API / WireGuard tunnel → Windows PC running Hermes Agent, Pocket ID and private web apps; Hermes talks to Surplus (LLM), Groq (STT) and Edge TTS](docs/architecture.svg)
 
-    TB[Tailscale on PC<br/>mesh VPN, MagicDNS]
-
-    TG -- "voice note" --> TGA[Telegram API<br/>long-polling<br/>no ports, NAT-safe]
-    TGA -- "updates" --> GW[Hermes gateway<br/>on Windows PC]
-    TS --> TB
-    TB -- "https://machine.ts.net" --> PID[Pocket ID<br/>localhost:1411<br/>passkey SSO]
-    TB -- "tailscale serve" --> RH[Private web apps<br/>optional Caddy]
-
-    GW -- "STT: audio to text" --> GR[Groq API<br/>whisper-large-v3-turbo<br/>free tier]
-    GW -- "chat/agent loop" --> SU[Surplus Intelligence<br/>deepseek-v4.1-flash<br/>prepaid]
-    GW -- "TTS: text to MP3" --> ET[Edge TTS<br/>en-US-AriaNeural<br/>free, no key]
-    GW -- "MP3 to Opus" --> FF[FFmpeg bundled<br/>voice bubble]
-
-    GW -. "config.yaml<br/>.env secrets" .-> CF[("%LOCALAPPDATA%\hermes")]
-
-    style SU fill:#b3e6b3
-    style GR fill:#b3e6b3
-    style ET fill:#b3e6b3
-    style PID fill:#b3e6b3
-    style TS fill:#cce6ff
-    style TG fill:#cce6ff
-    style TGA fill:#cce6ff
-    style TB fill:#cce6ff
-```
-
-Everything green is free; Surplus is the one prepaid service.
+The blue path is the voice loop: voice note → Telegram API → Hermes gateway → Groq STT → Surplus LLM → Edge TTS → ffmpeg → voice bubble back in Telegram. Green labels are free tier; orange is the one prepaid service (Surplus, paid by the user).
 
 ## Repo map
 

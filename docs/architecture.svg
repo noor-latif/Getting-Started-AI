@@ -1,134 +1,146 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
-  <rect width="960" height="620" fill="#ffffff"/>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+  <rect width="960" height="600" fill="#ffffff"/>
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
     </marker>
-    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/>
     </marker>
   </defs>
   <style>
+    .zone  { stroke-width: 1.5; stroke-dasharray: 7 5; }
     .box   { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
-    .zone  { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.2; stroke-dasharray: 6 4; }
-    .title { fill: #0f172a; font-size: 15px; font-weight: 600; }
-    .sub   { fill: #64748b; font-size: 11.5px; }
-    .lbl   { fill: #64748b; font-size: 11.5px; }
-    .flow  { stroke: #94a3b8; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
-    .flowA { stroke: #2563eb; stroke-width: 1.8; fill: none; marker-end: url(#arrA); }
-    .badge { fill: #ffffff; stroke: #cbd5e1; font-size: 10.5px; }
-    .free  { fill: #16a34a; font-size: 10.5px; font-weight: 600; }
-    .paid  { fill: #d97706; font-size: 10.5px; font-weight: 600; }
+    .name  { fill: #0f172a; font-size: 13.5px; font-weight: 700; }
+    .plain { fill: #334155; font-size: 11.5px; }
+    .tech  { fill: #94a3b8; font-size: 10.5px; }
+    .head  { fill: #0f172a; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+    .sub   { fill: #64748b; font-size: 12px; }
+    .gray  { stroke: #94a3b8; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+    .blue  { stroke: #2563eb; stroke-width: 2.2; fill: none; marker-end: url(#arrB); }
+    .free  { fill: #16a34a; font-size: 11px; font-weight: 700; }
+    .paid  { fill: #d97706; font-size: 11px; font-weight: 700; }
+    .stepc { fill: #2563eb; }
+    .stepn { fill: #ffffff; font-size: 12px; font-weight: 700; }
+    .stepcap { fill: #2563eb; font-size: 11.5px; font-weight: 600; }
   </style>
 
-  <!-- ================= PHONE ZONE ================= -->
-  <rect class="zone" x="20" y="150" width="150" height="320" rx="10"/>
-  <text class="title" x="95" y="175" text-anchor="middle">Phone</text>
+  <!-- Title -->
+  <text x="480" y="36" text-anchor="middle" style="fill:#0f172a; font-size:19px; font-weight:700;">Talk to your PC from your phone — it answers out loud</text>
+  <text x="480" y="58" text-anchor="middle" class="sub">Green = your PC, stays private · Amber = free cloud helpers · Blue numbers = your voice's round trip</text>
 
-  <rect class="box" x="40" y="195" width="110" height="58" rx="8"/>
-  <text class="title" x="95" y="218" text-anchor="middle" font-size="13">Telegram</text>
-  <text class="sub" x="95" y="236" text-anchor="middle">voice notes in/out</text>
+  <!-- ================= YOUR PHONE ================= -->
+  <rect class="zone" x="20" y="85" width="170" height="330" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
+  <text class="head" x="105" y="112" text-anchor="middle">YOUR PHONE</text>
 
-  <rect class="box" x="40" y="275" width="110" height="58" rx="8"/>
-  <text class="title" x="95" y="298" text-anchor="middle" font-size="13">Tailscale</text>
-  <text class="sub" x="95" y="316" text-anchor="middle">Android app</text>
+  <rect class="box" x="35" y="130" width="140" height="64" rx="8"/>
+  <text class="name" x="105" y="156" text-anchor="middle">Telegram</text>
+  <text class="plain" x="105" y="174" text-anchor="middle">your voice notes</text>
 
-  <rect class="box" x="40" y="390" width="110" height="58" rx="8"/>
-  <text class="title" x="95" y="413" text-anchor="middle" font-size="13">Browser</text>
-  <text class="sub" x="95" y="431" text-anchor="middle">passkey login</text>
+  <rect class="box" x="35" y="215" width="140" height="64" rx="8"/>
+  <text class="name" x="105" y="241" text-anchor="middle">Tailscale</text>
+  <text class="plain" x="105" y="259" text-anchor="middle">private-tunnel app</text>
 
-  <!-- ================= TELEGRAM CLOUD ================= -->
-  <rect class="box" x="230" y="195" width="130" height="58" rx="8"/>
-  <text class="title" x="295" y="218" text-anchor="middle" font-size="13">Telegram API</text>
-  <text class="sub" x="295" y="236" text-anchor="middle">long-polling, no ports</text>
-  <text class="free" x="295" y="185" text-anchor="middle">free</text>
+  <rect class="box" x="35" y="300" width="140" height="64" rx="8"/>
+  <text class="name" x="105" y="326" text-anchor="middle">Browser</text>
+  <text class="plain" x="105" y="344" text-anchor="middle">for private logins</text>
 
-  <!-- ================= WINDOWS PC ZONE ================= -->
-  <rect class="zone" x="420" y="20" width="250" height="580" rx="10"/>
-  <text class="title" x="545" y="45" text-anchor="middle">Windows PC (24/7)</text>
+  <!-- ================= TELEGRAM RELAY ================= -->
+  <rect class="box" x="245" y="130" width="120" height="64" rx="8"/>
+  <text class="name" x="305" y="156" text-anchor="middle">Telegram</text>
+  <text class="plain" x="305" y="174" text-anchor="middle">relays messages</text>
+  <text class="free" x="305" y="118" text-anchor="middle">free</text>
 
-  <!-- Tailscale on PC -->
-  <rect class="box" x="445" y="275" width="200" height="58" rx="8"/>
-  <text class="title" x="545" y="298" text-anchor="middle" font-size="13">Tailscale on PC</text>
-  <text class="sub" x="545" y="316" text-anchor="middle">mesh VPN, MagicDNS</text>
-  <text class="free" x="625" y="265" text-anchor="middle">free</text>
+  <!-- ================= YOUR WINDOWS PC ================= -->
+  <rect class="zone" x="385" y="85" width="270" height="420" rx="12" fill="#f0fdf4" stroke="#86efac"/>
+  <text class="head" x="520" y="112" text-anchor="middle">YOUR WINDOWS PC · always on</text>
 
-  <!-- Hermes gateway -->
-  <rect class="box" x="445" y="120" width="200" height="110" rx="8" stroke="#2563eb" stroke-width="2"/>
-  <text class="title" x="545" y="146" text-anchor="middle" font-size="13">Hermes Agent</text>
-  <text class="sub" x="545" y="164" text-anchor="middle">gateway (schtasks autostart)</text>
-  <text class="sub" x="545" y="180" text-anchor="middle">STT · agent loop · TTS · ffmpeg</text>
-  <text class="sub" x="545" y="212" text-anchor="middle">config.yaml + .env</text>
+  <rect class="box" x="405" y="130" width="230" height="92" rx="8" stroke="#2563eb" stroke-width="2"/>
+  <text class="name" x="520" y="155" text-anchor="middle">Hermes — your assistant</text>
+  <text class="plain" x="520" y="174" text-anchor="middle">listens, thinks, replies</text>
+  <text class="plain" x="520" y="192" text-anchor="middle">runs 24/7, starts at boot</text>
+  <text class="tech" x="520" y="211" text-anchor="middle">Hermes Agent · schtasks autostart</text>
 
-  <!-- Pocket ID -->
-  <rect class="box" x="445" y="380" width="200" height="58" rx="8"/>
-  <text class="title" x="545" y="403" text-anchor="middle" font-size="13">Pocket ID</text>
-  <text class="sub" x="545" y="421" text-anchor="middle">:1411 · passkey SSO</text>
-  <text class="free" x="625" y="370" text-anchor="middle">free</text>
+  <rect class="box" x="405" y="245" width="230" height="58" rx="8"/>
+  <text class="name" x="520" y="268" text-anchor="middle">Tailscale</text>
+  <text class="plain" x="520" y="286" text-anchor="middle">private tunnel to your phone</text>
 
-  <!-- Private apps -->
-  <rect class="box" x="445" y="475" width="200" height="58" rx="8"/>
-  <text class="title" x="545" y="498" text-anchor="middle" font-size="13">Private web apps</text>
-  <text class="sub" x="545" y="516" text-anchor="middle">optional Caddy in front</text>
-  <text class="free" x="625" y="465" text-anchor="middle">free</text>
+  <rect class="box" x="405" y="330" width="230" height="58" rx="8"/>
+  <text class="name" x="520" y="353" text-anchor="middle">Pocket ID</text>
+  <text class="plain" x="520" y="371" text-anchor="middle">one login (passkey) for your apps</text>
 
-  <!-- ================= CLOUD APIS (right) ================= -->
-  <!-- Surplus -->
-  <rect class="box" x="760" y="60" width="175" height="72" rx="8" stroke="#d97706" stroke-width="1.5"/>
-  <text class="title" x="847" y="85" text-anchor="middle" font-size="13">Surplus Intelligence</text>
-  <text class="sub" x="847" y="103" text-anchor="middle">LLM · deepseek-v4.1-flash</text>
-  <text class="sub" x="847" y="119" text-anchor="middle">api.surplusintelligence.ai</text>
-  <text class="paid" x="847" y="50" text-anchor="middle">prepaid by user</text>
+  <rect class="box" x="405" y="415" width="230" height="58" rx="8"/>
+  <text class="name" x="520" y="438" text-anchor="middle">Your private web apps</text>
+  <text class="plain" x="520" y="456" text-anchor="middle">optional Caddy in front</text>
 
-  <!-- Groq -->
-  <rect class="box" x="760" y="165" width="175" height="72" rx="8"/>
-  <text class="title" x="847" y="190" text-anchor="middle" font-size="13">Groq</text>
-  <text class="sub" x="847" y="208" text-anchor="middle">STT · whisper-large-v3-turbo</text>
-  <text class="sub" x="847" y="224" text-anchor="middle">free tier (8 h audio/day)</text>
-  <text class="free" x="847" y="155" text-anchor="middle">free</text>
+  <!-- ================= CLOUD HELPERS ================= -->
+  <rect class="zone" x="745" y="85" width="195" height="330" rx="12" fill="#fffbeb" stroke="#fcd34d"/>
+  <text class="head" x="842" y="112" text-anchor="middle">CLOUD HELPERS</text>
 
-  <!-- Edge TTS -->
-  <rect class="box" x="760" y="270" width="175" height="58" rx="8"/>
-  <text class="title" x="847" y="293" text-anchor="middle" font-size="13">Edge TTS</text>
-  <text class="sub" x="847" y="311" text-anchor="middle">spoken replies, no key</text>
-  <text class="free" x="847" y="260" text-anchor="middle">free</text>
+  <!-- 2 ears -->
+  <rect class="box" x="760" y="130" width="165" height="78" rx="8"/>
+  <text class="name" x="842" y="154" text-anchor="middle">Groq — the ears</text>
+  <text class="plain" x="842" y="172" text-anchor="middle">speech becomes text</text>
+  <text class="tech" x="842" y="190" text-anchor="middle">whisper-large-v3-turbo</text>
+  <text class="free" x="842" y="122" text-anchor="middle">free</text>
 
-  <!-- ================= EDGES ================= -->
-  <!-- Phone -> Telegram API -->
-  <path class="flowA" d="M150,224 H228"/>
-  <text class="lbl" x="189" y="214" text-anchor="middle">voice note</text>
+  <!-- 3 brain -->
+  <rect class="box" x="760" y="228" width="165" height="78" rx="8" stroke="#d97706" stroke-width="1.5"/>
+  <text class="name" x="842" y="252" text-anchor="middle">Surplus — the brain</text>
+  <text class="plain" x="842" y="270" text-anchor="middle">AI does the thinking</text>
+  <text class="tech" x="842" y="288" text-anchor="middle">deepseek-v4.1-flash</text>
+  <text class="paid" x="842" y="220" text-anchor="middle">prepaid by you</text>
 
-  <!-- Telegram API -> Hermes -->
-  <path class="flowA" d="M360,224 C395,224 400,180 443,175"/>
-  <text class="lbl" x="400" y="205" text-anchor="middle">updates</text>
+  <!-- 4 voice -->
+  <rect class="box" x="760" y="326" width="165" height="78" rx="8"/>
+  <text class="name" x="842" y="350" text-anchor="middle">Edge TTS — the voice</text>
+  <text class="plain" x="842" y="368" text-anchor="middle">text becomes speech</text>
+  <text class="tech" x="842" y="386" text-anchor="middle">Microsoft Edge voices</text>
+  <text class="free" x="842" y="418" text-anchor="middle">free</text>
 
-  <!-- Phone Tailscale -> PC Tailscale -->
-  <path class="flow" d="M150,304 H443"/>
-  <text class="lbl" x="295" y="294" text-anchor="middle">WireGuard tunnel</text>
+  <!-- ================= EDGES: the voice round trip ================= -->
+  <!-- 1: you talk -->
+  <path class="blue" d="M175,158 H241"/>
+  <circle class="stepc" cx="208" cy="140" r="11"/>
+  <text class="stepn" x="208" y="144" text-anchor="middle">1</text>
+  <text class="stepcap" x="208" y="170" text-anchor="middle">you talk</text>
 
-  <!-- PC Tailscale -> Hermes -->
-  <path class="flow" d="M545,273 V232"/>
-  <text class="lbl" x="560" y="258">tailscale serve --bg 1411</text>
+  <!-- relay to PC -->
+  <path class="blue" d="M365,158 C385,158 390,166 401,168"/>
 
-  <!-- Phone browser -> Pocket ID via ts.net -->
-  <path class="flow" d="M95,450 C95,505 250,470 443,420"/>
-  <text class="lbl" x="240" y="487" text-anchor="middle">https://machine.tailnet.ts.net</text>
+  <!-- 5: reply back -->
+  <path class="blue" d="M401,188 C392,184 380,182 369,182"/>
+  <path class="blue" d="M243,182 H181"/>
+  <circle class="stepc" cx="212" cy="200" r="11"/>
+  <text class="stepn" x="212" y="204" text-anchor="middle">5</text>
 
-  <!-- Tailscale -> private apps -->
-  <path class="flow" d="M645,409 C665,409 670,480 647,495"/>
+  <!-- 2/3/4: PC to cloud helpers -->
+  <path class="gray" d="M637,165 C690,165 700,168 756,168"/>
+  <circle class="stepc" cx="696" cy="148" r="11"/>
+  <text class="stepn" x="696" y="152" text-anchor="middle">2</text>
+  <text class="stepcap" x="696" y="135" text-anchor="middle">hears</text>
 
-  <!-- Hermes -> cloud APIs -->
-  <path class="flow" d="M647,150 H758"/>
-  <text class="lbl" x="702" y="140" text-anchor="middle">SURPLUS_API_KEY</text>
+  <path class="gray" d="M637,185 C690,190 700,262 756,265"/>
+  <circle class="stepc" cx="696" cy="222" r="11"/>
+  <text class="stepn" x="696" y="226" text-anchor="middle">3</text>
+  <text class="stepcap" x="696" y="209" text-anchor="middle">thinks</text>
 
-  <path class="flow" d="M647,165 C700,175 710,195 758,199"/>
-  <text class="lbl" x="702" y="172" text-anchor="middle">GROQ_API_KEY</text>
+  <path class="gray" d="M637,205 C690,215 700,360 756,362"/>
+  <circle class="stepc" cx="696" cy="292" r="11"/>
+  <text class="stepn" x="696" y="296" text-anchor="middle">4</text>
+  <text class="stepcap" x="696" y="279" text-anchor="middle">speaks</text>
 
-  <path class="flow" d="M647,185 C700,220 710,280 758,296"/>
-  <text class="lbl" x="712" y="262" text-anchor="middle">no key</text>
+  <!-- phone tailscale <-> PC tailscale -->
+  <path class="gray" d="M177,252 C260,252 320,272 401,272"/>
+  <text class="sub" x="285" y="294" text-anchor="middle">encrypted private tunnel</text>
 
-  <!-- Legend -->
-  <rect class="badge" x="20" y="540" width="130" height="60" rx="8"/>
-  <text class="free" x="35" y="563">free tier</text>
-  <text class="paid" x="35" y="583">prepaid usage</text>
+  <!-- browser -> pocket id -->
+  <path class="gray" d="M105,366 C105,430 260,392 401,366"/>
+  <text class="sub" x="248" y="420" text-anchor="middle">private login from anywhere</text>
+
+  <!-- pocket id -> apps -->
+  <path class="gray" d="M520,390 V411"/>
+
+  <!-- bottom note -->
+  <text x="480" y="585" text-anchor="middle" class="sub">Setup takes one evening. After that: hold the mic button in Telegram, talk, and your PC talks back.</text>
 </svg>

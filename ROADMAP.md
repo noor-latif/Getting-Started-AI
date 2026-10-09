@@ -174,7 +174,7 @@ Plus: consolidated troubleshooting table (PATH, UTF-8, Telegram photo backslash 
 
 ## One-shot execution contract for the agent
 
-1. Read `RESEARCH.md` and ALL files in `skills/` BEFORE executing anything.
+1. Read `CONTEXT.md`, then `RESEARCH.md`, then ALL files in `skills/` BEFORE executing anything.
 2. Run phases strictly in order 0 → 1 → 2 → 3 → (4 if domain exists) → 5; a phase starts only when the previous phase's exit criteria are met.
 3. NEVER skip a Verification block; a phase is done only when its exit criteria are observably true.
 4. On the FIRST failed verification: STOP, record phase, step, exact error, and report to the user. Do not improvise fixes outside the skill files.

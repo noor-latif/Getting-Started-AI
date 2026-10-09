@@ -28,7 +28,8 @@ The numbered blue path is your voice's round trip: **1** you talk into Telegram 
 
 | File | Covers |
 |---|---|
-| `RESEARCH.md` | Single source of truth — verified facts, URLs, costs, commands. Read first. |
+| `CONTEXT.md` | Read FIRST if you are an AI agent executing this: mental model, non-negotiables, decided answers, failure etiquette |
+| `RESEARCH.md` | Single source of truth — verified facts, URLs, costs, commands. |
 | `skills/01-prerequisites-and-accounts.md` | Windows 10/11 x64 checks, PowerShell (no admin), accounts/keys from §1, secret handling, .env rules |
 | `skills/02-install-hermes.md` | Hermes PowerShell installer, PATH verification, Surplus LLM config (config.yaml), Groq STT, Edge TTS |
 | `skills/03-telegram-voice-gateway.md` | `hermes gateway setup` (Telegram), voice mode `/voice on|tts|off`, `hermes gateway install` schtasks autostart, status/restart |

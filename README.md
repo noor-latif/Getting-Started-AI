@@ -20,9 +20,9 @@ Optional tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEV
 
 ## Architecture
 
-![Architecture: phone (Telegram voice, Tailscale, browser) → Telegram API / WireGuard tunnel → Windows PC running Hermes Agent, Pocket ID and private web apps; Hermes talks to Surplus (LLM), Groq (STT) and Edge TTS](docs/architecture.svg)
+![Diagram: your phone connects to your always-on Windows PC. You talk into Telegram, the voice goes to Groq (the ears), Surplus (the brain) thinks, Edge TTS speaks (the voice), and the PC answers out loud in Telegram. Pocket ID guards private logins and Tailscale provides the encrypted tunnel.](docs/architecture.svg)
 
-The blue path is the voice loop: voice note → Telegram API → Hermes gateway → Groq STT → Surplus LLM → Edge TTS → ffmpeg → voice bubble back in Telegram. Green labels are free tier; orange is the one prepaid service (Surplus, paid by the user).
+The numbered blue path is your voice's round trip: **1** you talk into Telegram → **2** Groq transcribes it (the ears) → **3** Surplus's AI thinks (the brain) → **4** Edge TTS speaks the reply (the voice) → **5** it answers out loud in Telegram. Green zone = your PC, stays private; amber = free cloud helpers (Surplus is the only prepaid one).
 
 ## Repo map
 

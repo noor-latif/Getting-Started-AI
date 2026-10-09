@@ -20,9 +20,9 @@ Optional tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEV
 
 ## Architecture
 
-![Diagram: your phone connects to your always-on Windows PC. You talk into Telegram, the voice goes to Groq (the ears), Surplus (the brain) thinks, Edge TTS speaks (the voice), and the PC answers out loud in Telegram. Pocket ID guards private logins and Tailscale provides the encrypted tunnel.](docs/architecture.svg)
+![Diagram: your phone connects to your always-on Windows PC. You talk into Telegram, the voice goes to the ears (STT via Groq), the brain (LLM via Surplus) thinks, the voice (TTS via Edge TTS) speaks, and the PC answers out loud in Telegram. Pocket ID guards private logins and Tailscale provides the encrypted tunnel.](docs/architecture.svg)
 
-The numbered blue path is your voice's round trip: **1** you talk into Telegram → **2** Groq transcribes it (the ears) → **3** Surplus's AI thinks (the brain) → **4** Edge TTS speaks the reply (the voice) → **5** it answers out loud in Telegram. Green zone = your PC, stays private; amber = free cloud helpers (Surplus is the only prepaid one).
+The numbered blue path is your voice's round trip: **1** you talk into Telegram → **2** the ears (STT — Groq) turn it into text → **3** the brain (LLM — Surplus's `deepseek-v4.1-flash`) thinks → **4** the voice (TTS — Edge) speaks the reply → **5** it answers out loud in Telegram. Green zone = your PC, stays private; amber = cloud helpers (Surplus is the only prepaid one).
 
 ## Repo map
 

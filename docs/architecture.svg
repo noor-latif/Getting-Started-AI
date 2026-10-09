@@ -79,24 +79,24 @@
 
   <!-- 2 ears -->
   <rect class="box" x="760" y="130" width="165" height="78" rx="8"/>
-  <text class="name" x="842" y="154" text-anchor="middle">Groq — the ears</text>
+  <text class="name" x="842" y="154" text-anchor="middle">The ears (STT)</text>
   <text class="plain" x="842" y="172" text-anchor="middle">speech becomes text</text>
-  <text class="tech" x="842" y="190" text-anchor="middle">whisper-large-v3-turbo</text>
+  <text class="tech" x="842" y="190" text-anchor="middle">Groq · whisper-large-v3-turbo</text>
   <text class="free" x="842" y="122" text-anchor="middle">free</text>
 
   <!-- 3 brain -->
   <rect class="box" x="760" y="228" width="165" height="78" rx="8" stroke="#d97706" stroke-width="1.5"/>
-  <text class="name" x="842" y="252" text-anchor="middle">Surplus — the brain</text>
+  <text class="name" x="842" y="252" text-anchor="middle">The brain (LLM)</text>
   <text class="plain" x="842" y="270" text-anchor="middle">AI does the thinking</text>
-  <text class="tech" x="842" y="288" text-anchor="middle">deepseek-v4.1-flash</text>
+  <text class="tech" x="842" y="288" text-anchor="middle">Surplus · deepseek-v4.1-flash</text>
   <text class="paid" x="842" y="220" text-anchor="middle">prepaid by you</text>
 
   <!-- 4 voice -->
   <rect class="box" x="760" y="326" width="165" height="78" rx="8"/>
-  <text class="name" x="842" y="350" text-anchor="middle">Edge TTS — the voice</text>
+  <text class="name" x="842" y="350" text-anchor="middle">The voice (TTS)</text>
   <text class="plain" x="842" y="368" text-anchor="middle">text becomes speech</text>
-  <text class="tech" x="842" y="386" text-anchor="middle">Microsoft Edge voices</text>
-  <text class="free" x="842" y="418" text-anchor="middle">free</text>
+  <text class="tech" x="842" y="386" text-anchor="middle">Edge TTS · Microsoft voices</text>
+  <text class="free" x="842" y="398" text-anchor="middle">free</text>
 
   <!-- ================= EDGES: the voice round trip ================= -->
   <!-- 1: you talk -->
@@ -113,6 +113,7 @@
   <path class="blue" d="M243,182 H181"/>
   <circle class="stepc" cx="212" cy="200" r="11"/>
   <text class="stepn" x="212" y="204" text-anchor="middle">5</text>
+  <text class="stepcap" x="212" y="224" text-anchor="middle">it answers</text>
 
   <!-- 2/3/4: PC to cloud helpers -->
   <path class="gray" d="M637,165 C690,165 700,168 756,168"/>

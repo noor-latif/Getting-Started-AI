@@ -110,6 +110,6 @@
 
   <!-- Notes -->
   <text x="195" y="818" text-anchor="middle" class="small">Voice replies: send a voice note, then type /voice on</text>
-  <text x="195" y="836" text-anchor="middle" class="small">Round voice bubbles need ffmpeg installed</text>
+  <text x="195" y="836" text-anchor="middle" class="small">ffmpeg ships with the Hermes installer — nothing extra to install</text>
   </g>
 </svg>

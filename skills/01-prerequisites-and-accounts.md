@@ -53,11 +53,12 @@ TELEGRAM_BOT_TOKEN=123456789:ABCdef...
 TELEGRAM_ALLOWED_USERS=123456789
 ```
 
-Optional, only for skills 05–06: `HOSTUP_API_KEY=...` (HostUp → dashboard → API keys: scopes `read:dns`, `write:dns`, `read:domains`). Note: this key goes in as a SYSTEM env var (`setx /M HOSTUP_API_KEY`) when Phase 4 runs, because lego/Caddy's scheduled tasks must see it — handled in skill 05.
+Optional, only for skills 05–06: the HostUp API key does NOT go in this .env and NOT in system env vars — skill 05 stores it in `C:\caddy\secrets\hostup_api_key` and points lego at it via `HOSTUP_API_KEY_FILE`. Get the key (scopes `read:dns`, `write:dns`, `read:domains`) from the HostUp dashboard when Phase 4 runs.
 
 ## Security rules (non-negotiable)
-- Secrets ONLY in `%LOCALAPPDATA%\hermes\.env`. Never in Windows user/system env vars, never in chat logs, never in screenshots.
+- Hermes secrets ONLY in `%LOCALAPPDATA%\hermes\.env`. Never in Windows user/system env vars, never in chat logs, never in screenshots.
 - NEVER set `TELEGRAM_ALLOW_ALL_USERS`. Only `TELEGRAM_ALLOWED_USERS` with the friend's numeric id.
+- ONE exception, introduced only if Phase 4 runs: the HostUp key lives in `C:\caddy\secrets\hostup_api_key` (a plain file), because lego is not a Hermes process and scheduled tasks must read it headlessly. It never goes into Hermes' .env, system env vars, or anywhere else. Set up in skill 05, not here.
 - Telegram token leaked → `/revoke` in BotFather immediately, replace in `.env`, restart gateway.
 - Per-tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`) are optional — leave unset.
 

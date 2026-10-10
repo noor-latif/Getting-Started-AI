@@ -24,9 +24,9 @@ Route `https://<name>.ts.net` (or, optionally, your own domain's subdomains) to 
    ```
 4. **Mappings are additive — adding a second service does NOT remove the first.** Pocket ID on 1411 (skill 04) keeps working when you add another service on a different port:
    ```powershell
-   tailscale serve --bg 8443 localhost:3000   # new mapping, same host, new https port
+   tailscale serve --bg --https=8443 localhost:3000   # listen port is a flag, target is the one positional
    ```
-   Access form becomes `https://<machine>.<tailnet>.ts.net:8443`. For path-based URLs on the SAME port use `--set-path` (`tailscale serve --bg --set-path=/app 3000`). `serve reset` wipes every mapping — including Pocket ID's — so only use it when you truly want a clean slate; check with `serve status` first.
+   Access form becomes `https://<machine>.<tailnet>.ts.net:8443`. For path-based URLs on the SAME port use `--set-path` (`tailscale serve --bg --set-path=/app localhost:3000`). `serve reset` wipes every mapping — including Pocket ID's — so only use it when you truly want a clean slate; check with `serve status` first.
 5. Public (non-tailnet) exposure variant, if ever needed: `tailscale funnel 3000` — NOT used in this setup.
 
 ### Limits (know before relying on it)
@@ -52,21 +52,33 @@ Returns `HTTP/2 200` (or the service's expected status) over valid TLS. If Pocke
 ### Steps
 1. **Domain at HostUp.** Buy/register (or transfer) the domain in the HostUp client area — DNS zone is created automatically. `.se` works natively here.
 2. **HostUp API key.** HostUp dashboard → API keys → create a key with scopes `read:dns`, `write:dns`, `read:domains` (exactly what the lego hostup provider requires).
-3. **Set the key as a SYSTEM environment variable** (so scheduled tasks see it, not just your session):
+3. **Give the key to lego.** HostUp has no key prefix (any "hu_"-style pattern you see elsewhere is invented) — use the key verbatim. lego runs as a scheduled task later, so it must see the key without a logged-in session. Simplest reliable way on Windows: a dedicated secrets file only the lego task reads:
    ```powershell
-   setx /M HOSTUP_API_KEY "hu_..."
+   mkdir C:\caddy\secrets -Force
+   # Save the key INTO the file (no name=, just the raw key):
+   Set-Content -Path C:\caddy\secrets\hostup_api_key -Value "<paste-your-hostup-api-key>" -NoNewline
    ```
-   Admin PowerShell required. Open a NEW shell afterwards so it's loaded.
-4. **Install lego** (the ACME client that does DNS-01):
+   lego reads it via `HOSTUP_API_KEY_FILE=C:\caddy\secrets\hostup_api_key` (the hostup provider supports `_FILE` suffixes natively). The scheduled task (step 5) sets that variable itself, so nothing machine-global leaks. Hermes secrets stay in `%LOCALAPPDATA%\hermes\.env` per skill 01 — this file is a separate, lego-only exception.
+4. **Install lego** (the ACME client that does DNS-01). lego is NOT in the winget catalog — download the release zip:
    ```powershell
-   winget install --id AEPos lego
+   mkdir C:\caddy\lego -Force
+   # Get the current version from https://github.com/go-acme/lego/releases/latest
+   # then (adjust version number to what the page shows):
+   curl.exe -L -o C:\caddy\lego\lego.zip https://github.com/go-acme/lego/releases/latest/download/lego_v4.25.1_windows_amd64.zip
+   Expand-Archive C:\caddy\lego\lego.zip -DestinationPath C:\caddy\lego -Force
+   C:\caddy\lego\lego.exe --version
    ```
-   ([agent must verify current winget id — else download lego_windows_amd64.exe from https://github.com/go-acme/lego/releases and put it in C:\caddy\.])
-5. **Issue the wildcard cert** (DNS-01 — no open ports needed):
+   ([agent must verify: the exact `lego_vX.Y.Z_windows_amd64.zip` filename on the releases page — the version above is an example, the URL pattern `releases/latest/download/lego_v<ver>_windows_amd64.zip` needs the concrete current version.])
+5. **Issue the wildcard cert** (DNS-01 — no open ports needed). Use ONE fixed lego home so issuance and renewal touch the same files:
    ```powershell
-   lego --dns hostup -d "*.example.com" -d example.com run
+   $env:HOSTUP_API_KEY_FILE = "C:\caddy\secrets\hostup_api_key"
+   C:\caddy\lego\lego.exe --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com run
    ```
-   Certs land in `.\.lego\certificates\` (copy the directory somewhere stable, e.g. `C:\caddy\certs\`). Renew later with `lego --dns hostup -d "*.example.com" -d example.com renew --days 30` — schedule it daily via Task Scheduler.
+   Certs land in `C:\caddy\lego\certificates\` (`_.example.com.crt` + `.key`). The Caddyfile (step 8) reads from there directly. Renewal runs the SAME `--path` so it updates the files Caddy serves:
+   ```
+   lego --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com renew --days 30
+   ```
+   Schedule that daily via Task Scheduler (task also sets `HOSTUP_API_KEY_FILE`), and reload Caddy afterwards: `C:\caddy\caddy.exe reload --config C:\caddy\Caddyfile` (append it to the same task).
 6. **Wildcard DNS record** in HostUp DNS management:
    - A record: name `*` → value = PC's Tailscale IP (`tailscale ip -4`).
    - Optional AAAA with `tailscale ip -6`.
@@ -77,13 +89,13 @@ Returns `HTTP/2 200` (or the service's expected status) over valid TLS. If Pocke
    winget install CaddyServer.Caddy
    ```
    No custom module needed — TLS termination uses the lego cert files.
-8. **Caddyfile.** Create `C:\caddy\Caddyfile` (replace domain and ports):
+8. **Caddyfile.** Create `C:\caddy\Caddyfile` (replace domain and ports) — pointing at lego's actual output:
    ```
    {
        auto_https off
    }
    *.example.com:443 {
-       tls C:\caddy\certs\_.example.com.crt C:\caddy\certs\_.example.com.key
+       tls C:\caddy\lego\certificates\_.example.com.crt C:\caddy\lego\certificates\_.example.com.key
        @agent host agent.example.com
        handle @agent { reverse_proxy 127.0.0.1:PORT }
    }

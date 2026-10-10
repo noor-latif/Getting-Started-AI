@@ -91,7 +91,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 ### Option A: HostUp DNS + lego DNS-01 wildcard + Caddy (custom domain)
 - Domain: buy/register/transfer at HostUp (hostup.se) — `.se` sold natively (Cloudflare Registrar does NOT sell .se); DNS zone auto-created.
 - HostUp API key scopes: `read:dns`, `write:dns`, `read:domains` (exactly what lego's hostup provider requires). DNS records API: `GET/POST /api/v2/dns-zones/{id}/records` (https://developer.hostup.se).
-- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/): `HOSTUP_API_KEY=... lego --dns hostup -d "*.example.com" -d example.com run` → certs in `.lego\certificates\`; renew with `... renew --days 30` on a daily Task Scheduler job.
+- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/). lego is NOT in the winget catalog — install from GitHub releases zip (`lego_v<ver>_windows_amd64.zip` → `C:\caddy\lego\lego.exe`). Key via file: `HOSTUP_API_KEY_FILE=C:\caddy\secrets\hostup_api_key` (hostup provider supports `_FILE` env suffixes). ALWAYS pin `--path C:\caddy\lego` on run AND renew so Caddy serves the renewed files: `lego --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com run` / `... renew --days 30` (daily Task Scheduler + `caddy reload`).
 - **Because lego fetches the cert, a STANDARD Caddy build works** (`winget install CaddyServer.Caddy`) — no download-builder module, no xcaddy. Caddy serves the lego cert files (`auto_https off`, `tls <crt> <key>`).
 - HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA with `tailscale ip -6`. Specific records override the wildcard.
 - Caddyfile (adjust domain/ports):
@@ -100,7 +100,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
     auto_https off
 }
 *.example.com:443 {
-    tls C:\caddy\certs\_.example.com.crt C:\caddy\certs\_.example.com.key
+    tls C:\caddy\lego\certificates\_.example.com.crt C:\caddy\lego\certificates\_.example.com.key
     @agent host agent.example.com
     handle @agent { reverse_proxy 127.0.0.1:PORT }
 }

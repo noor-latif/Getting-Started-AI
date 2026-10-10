@@ -30,8 +30,7 @@ from his phone using one passkey (Pocket ID) over an encrypted tunnel (Tailscale
    may pick a local model, which violates rule 1 and slows the PC.
 3. The LLM base URL is exactly `https://api.surplusintelligence.ai/v1` and the model id exactly
    `deepseek-v4.1-flash` (dot before the 1). Wrong id = silent model mismatch.
-4. Never put real keys in this repo, in screenshots, in commit messages, or anywhere except the
-   .env files named in the skills.
+4. Never put real keys in this repo, in screenshots, in commit messages, or anywhere except the secrets files named in the skills: Hermes secrets in `%LOCALAPPDATA%\hermes\.env`; if Phase 4 runs, the HostUp key in `C:\caddy\secrets\hostup_api_key` (lego-only, set up in skill 05). Never in Windows user/system env vars.
 5. HUMAN STEP items cannot be automated (BotFather chat, Groq signup, passkey enrollment). Ask,
    wait, verify what you received, then continue. Never fabricate a token.
 6. Every skill ends with a Verification block. A phase is done only when its checks observably

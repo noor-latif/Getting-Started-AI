@@ -128,10 +128,10 @@ flowchart TD
 
 **Steps (detail in skill file):**
 1. Domain at HostUp (client area; DNS zone auto-created). HostUp API key with scopes `read:dns`, `write:dns`, `read:domains`.
-2. `setx /M HOSTUP_API_KEY <key>` (SYSTEM env so scheduled tasks see it).
-3. Install lego (`winget install --id AEPos lego` — verify id), issue the wildcard: `lego --dns hostup -d "*.example.com" -d example.com run` → certs in `.lego\certificates\` (move to `C:\caddy\certs\`). Schedule `lego ... renew --days 30` daily.
+2. Key file (not env var, not Hermes .env): `C:\caddy\secrets\hostup_api_key`, read by lego via `HOSTUP_API_KEY_FILE`.
+3. Install lego from GitHub releases zip (NOT winget — lego is not in the catalog) to `C:\caddy\lego\`. Issue with a pinned `--path C:\caddy\lego`: `lego --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com run`. Daily renew task uses the SAME `--path` + `HOSTUP_API_KEY_FILE`, then `caddy reload`.
 4. HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA via `tailscale ip -6`. Specific records override the wildcard. (Headless alternative: `POST /api/v2/dns-zones/{id}/records`.)
-5. Install Caddy — STANDARD winget build works (no custom module needed; lego already fetched the cert). Caddyfile serves the lego cert files (`auto_https off`), one `@host`/`handle` pair per subdomain.
+5. Install Caddy — STANDARD winget build works (no custom module needed; lego already fetched the cert). Caddyfile serves the lego cert files from `C:\caddy\lego\certificates\` (`auto_https off`), one `@host`/`handle` pair per subdomain.
 6. Always-on: NSSM service or Task Scheduler at startup.
 7. Recommendation remains Option B first (`tailscale serve`, zero cost, 2 commands); Phase 4 only if the domain exists.
 

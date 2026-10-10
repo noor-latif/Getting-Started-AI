@@ -12,7 +12,7 @@ Source: RESEARCH.md §1. Secrets live ONLY in `%LOCALAPPDATA%\hermes\.env` — n
 | 2 | [Groq](https://console.groq.com) (key at console.groq.com/keys) | Friend — signup is a **HUMAN STEP** | Free tier, no card | Account + 1 API key | `GROQ_API_KEY` |
 | 3 | [Telegram @BotFather](https://t.me/BotFather) | Friend — **HUMAN STEP** (BotFather chat, `/newbot`, username must end `bot`; token shown once, `/revoke` if leaked) | Free | 1 bot + token `123456789:ABCdef...` | `TELEGRAM_BOT_TOKEN` |
 | 4 | [Tailscale](https://login.tailscale.com) | Friend — **HUMAN STEP** (same login on PC and Android) | Personal plan free: up to 6 users, unlimited user devices, no card | Free tailnet; Windows client + Android app (com.tailscale.ipn) | none (GUI login) |
-| 5 | [Cloudflare](https://dash.cloudflare.com/sign-up) (OPTIONAL, custom-domain routing only) | Friend — **HUMAN STEP** (optional; domain buy too) | $0 DNS; domain at-cost (.com $10.46/yr at registrar.cloudflare.com; .se NOT sold by Cloudflare — buy elsewhere, point NS at Cloudflare) | Free account; API token `Zone→DNS→Edit` + `Zone→Zone→Read`, scoped to zone, `cfut_`-prefixed | `CLOUDFLARE_DNS_API_TOKEN` |
+| 5 | [HostUp](https://hostup.se) (OPTIONAL, custom-domain routing only) | Friend — **HUMAN STEP** (optional; domain buy too) | Domain at-cost (.se natively supported — Cloudflare Registrar does NOT sell .se); DNS included | Account; API key with scopes `read:dns`, `write:dns`, `read:domains` (lego DNS-01 + dashboard DNS) | `HOSTUP_API_KEY` |
 | 6 | Edge TTS | Nobody — no account, no key | $0 | Nothing — Hermes default TTS | none |
 | 7 | Hermes Agent | Nobody | $0 open source; Nous Portal is OPTIONAL paid — NOT used here | No account | — |
 
@@ -20,9 +20,9 @@ Optional tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEV
 
 ## Architecture
 
-![Diagram: your phone connects to your always-on Windows PC. You talk into Telegram, the voice goes to the ears (STT via Groq), the brain (LLM via Surplus) thinks, the voice (TTS via Edge TTS) speaks, and the PC answers out loud in Telegram. Pocket ID guards private logins and Tailscale provides the encrypted tunnel.](docs/architecture.svg)
+![Diagram, top to bottom: your phone (Telegram) sends a voice note down to Telegram servers, which relay it to Hermes Agent on your always-on Windows PC. Hermes calls three cloud voice services — 1 the ears (STT, Groq, free), 2 the brain (LLM, Surplus deepseek-v4.1-flash, prepaid), 3 the voice (TTS, Edge TTS, free) — and replies up the same chain. Below: your private apps (Caddy optional, Pocket ID passkey login, Tailscale private tunnel) reached from your phone.](docs/architecture.svg)
 
-The numbered blue path is your voice's round trip: **1** you talk into Telegram → **2** the ears (STT — Groq) turn it into text → **3** the brain (LLM — Surplus's `deepseek-v4.1-flash`) thinks → **4** the voice (TTS — Edge) speaks the reply → **5** it answers out loud in Telegram. Green zone = your PC, stays private; amber = cloud helpers (Surplus is the only prepaid one).
+The solid blue arrows are **your voice going down**: **1** you hold the mic in Telegram and talk → Telegram servers hold it (no open ports on your PC — Hermes polls outbound) → Hermes on the PC pulls it in. Hermes then calls the cloud helpers: **ears** (STT — Groq, free) turn speech into text, **brain** (LLM — Surplus's `deepseek-v4.1-flash`, prepaid by you) thinks, **voice** (TTS — Edge, free) turns the answer into speech. The dotted arrows are **the reply going back up** the same chain, landing as a voice bubble in Telegram. Everything else on the PC — Pocket ID (one passkey for private logins), Tailscale (encrypted tunnel), optional Caddy (custom-domain proxy) — exists so your phone can reach your private apps from anywhere without exposing them to the internet.
 
 ## Repo map
 
@@ -34,11 +34,11 @@ The numbered blue path is your voice's round trip: **1** you talk into Telegram 
 | `skills/02-install-hermes.md` | Hermes PowerShell installer, PATH verification, Surplus LLM config (config.yaml), Groq STT, Edge TTS |
 | `skills/03-telegram-voice-gateway.md` | `hermes gateway setup` (Telegram), voice mode `/voice on|tts|off`, `hermes gateway install` schtasks autostart, status/restart |
 | `skills/04-tailscale-and-pocket-id.md` | Tailscale PC+phone install, MagicDNS/HTTPS certs, `tailscale serve --bg 1411`, Pocket ID Windows binary (checksum, `.env` APP_URL/ENCRYPTION_KEY, firewall), first-run passkey, recovery, OIDC client |
-| `skills/05-private-web-routing.md` | Option B `tailscale serve` default; optional Option A Caddy+Cloudflare DNS-01 wildcard, Caddyfile, service persistence |
+| `skills/05-private-web-routing.md` | Option B `tailscale serve` default (mappings are additive); optional Option A HostUp DNS + lego wildcard cert + Caddy |
 | `skills/06-verification-and-troubleshooting.md` | End-to-end acceptance checklist, troubleshooting table, maintenance (updates, key rotation, backup) |
 
 ## Cost summary
 
-Everything is $0: Hermes open source, Edge TTS keyless, Groq free tier, Tailscale personal plan, Cloudflare DNS (only if the optional custom-domain phase runs). The only money ever spent: Surplus usage, prepaid by the user; optional domain ~$10.46/yr if Phase 4 is run.
+Everything is $0: Hermes open source, Edge TTS keyless, Groq free tier, Tailscale personal plan. The only money ever spent: Surplus usage, prepaid by the user; optional domain at HostUp if Phase 4 is run (`.se` natively supported).
 
 Source note: RESEARCH.md §1, §2, §3, §4.

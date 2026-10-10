@@ -45,7 +45,7 @@ flowchart TD
 **Estimated wall time:** 15 min.
 
 **Steps (detail in skill file):**
-1. PowerShell (NO admin): `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` — installs to `%LOCALAPPDATA%\hermes\`, bundles uv/Python 3.14/Node/npm/ripgrep/FFmpeg/Git. No prerequisites.
+1. PowerShell (NO admin): `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` — installs to `%LOCALAPPDATA%\hermes\`, bundles uv/Python 3.14/Node/npm/ripgrep/FFmpeg/Git. No prerequisites. **Hermes already installed (outdated)?** Follow the "If Hermes is already installed" branch at the top of the skill instead of a clean install.
 2. Open a NEW PowerShell window (PATH refresh). Verify: `Get-Command hermes`; `hermes --version`. Fallback if `'hermes' is not recognized`: `& "$env:LOCALAPPDATA\hermes\bin\hermes.exe"`.
 3. Write `%LOCALAPPDATA%\hermes\config.yaml`:
    ```yaml

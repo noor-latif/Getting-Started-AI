@@ -8,7 +8,7 @@ flowchart TD
     P1["Phase 1<br/>Hermes install + providers<br/>(02-install-hermes)"]
     P2["Phase 2<br/>Telegram gateway + voice + 24/7<br/>(03-telegram-voice-gateway)"]
     P3["Phase 3<br/>Tailscale serve + Pocket ID SSO<br/>(04-tailscale-and-pocket-id)"]
-    P4["Phase 4 (OPTIONAL)<br/>Caddy + Cloudflare domain<br/>(05-private-web-routing)"]
+    P4["Phase 4 (OPTIONAL)<br/>HostUp domain + lego + Caddy<br/>(05-private-web-routing)"]
     P5["Phase 5<br/>Full verification<br/>(06-verification-and-troubleshooting)"]
 
     P0 --> P1 --> P2 --> P3 --> P4 --> P5
@@ -26,7 +26,7 @@ flowchart TD
 3. Friend chats https://t.me/BotFather → `/newbot` (username ends `bot`); copy token shown ONCE (`123456789:ABCdef...`); `/revoke` if leaked.
 4. Friend gets their numeric Telegram user id from @userinfobot.
 5. Friend creates free Tailscale tailnet at https://login.tailscale.com (same login later on PC + Android).
-6. (OPTIONAL, only if Phase 4 runs) Friend buys domain (Cloudflare Registrar, .com $10.46/yr; .se must come from elsewhere) + creates Cloudflare API token: `Zone→DNS→Edit` + `Zone→Zone→Read`, scoped to zone, `cfut_`-prefixed.
+6. (OPTIONAL, only if Phase 4 runs) Friend buys domain at HostUp (hostup.se — `.se` natively supported) + creates HostUp API key with scopes `read:dns`, `write:dns`, `read:domains`.
 
 **Agent-completable (no human):**
 - Edge TTS: nothing to create — no account, no key.
@@ -34,7 +34,7 @@ flowchart TD
 - Verify Surplus key live: `curl https://api.surplusintelligence.ai/v1/models` with `Authorization: Bearer <key>` — expect 200 and `deepseek-v4.1-flash` in list.
 
 **Inputs:** none yet.
-**Exit criteria:** `SURPLUS_API_KEY`, `GROQ_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USERS` values known; Tailscale login credentials available; (optional) `CLOUDFLARE_DNS_API_TOKEN` + domain name recorded. Secrets still only in a temporary local scratch — never committed, never echoed.
+**Exit criteria:** `SURPLUS_API_KEY`, `GROQ_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USERS` values known; Tailscale login credentials available; (optional) `HOSTUP_API_KEY` + domain name recorded. Secrets still only in a temporary local scratch — never committed, never echoed.
 
 ## Phase 1 — Hermes install + provider config (RESEARCH.md §2)
 
@@ -107,7 +107,7 @@ flowchart TD
 2. Download Pocket ID v2.18.0 Windows binary: https://github.com/pocket-id/pocket-id/releases/latest/download/pocket-id_windows_amd64.exe (verify checksums.txt; amd64 NOT arm64). Single Go binary, embedded SQLite (`data/` with pocket-id.db + uploads/ in working dir).
 3. `.env` next to exe: `APP_URL=https://<machine>.tailnet-name.ts.net` (exact final URL, no path — passkeys bind to it; changing later invalidates them) + `ENCRYPTION_KEY` (≥16 bytes, e.g. `openssl rand -base64 32`). PUBLIC_URL does not exist (renamed APP_URL in v1); omit APP_ENV. `PORT` default 1411.
 4. Pre-authorize inbound 1411 in Windows Firewall (`netsh advfirewall`) to avoid interactive popup on first run [INFERENCE: standard Windows behavior].
-5. `tailscale serve --bg 1411` → HTTPS with auto Let's Encrypt cert. Reset: `tailscale serve reset`; status: `tailscale serve status`.
+5. `tailscale serve --bg 1411` → HTTPS with auto Let's Encrypt cert. Status: `tailscale serve status`. (Later services are ADDED as more mappings — never `serve reset` unless a full wipe is intended; see skill 05.)
 6. Run `.\pocket-id.exe`.
 7. **HUMAN STEP — inherently interactive, no default admin credentials exist:** open `APP_URL/setup`, create account, enroll passkey.
 8. Recovery path (document, don't run): `.\pocket-id.exe one-time-access-token <username>` → `/lc/<token>` URL valid 1h.
@@ -118,31 +118,22 @@ flowchart TD
 - Passkey sign-in works; enrollment completed.
 - Discovery URL returns `openid-configuration` JSON.
 
-## Phase 4 (OPTIONAL) — Caddy + Cloudflare custom-domain wildcard (RESEARCH.md §4-Option A)
+## Phase 4 (OPTIONAL) — HostUp DNS + lego wildcard + Caddy (RESEARCH.md §4-Option A)
 
 **Skill:** `skills/05-private-web-routing.md`
 **Goal:** Arbitrary subdomains of a real domain (`agent.example.com`, ...) routed to PC services over Tailscale, with wildcard DNS-01 TLS. Skip entirely unless the friend bought a domain.
-**Inputs:** domain, `CLOUDFLARE_DNS_API_TOKEN` (Phase 0 optional item).
+**Inputs:** domain (HostUp — `.se` natively supported), `HOSTUP_API_KEY` (Phase 0 optional item).
 **Skill file:** `skills/05-private-web-routing.md`
 **Estimated wall time:** 45 min.
 
 **Steps (detail in skill file):**
-1. Build Caddy with cloudflare module via official builder https://caddyserver.com/download (Platform "Windows amd64", module `github.com/caddy-dns/cloudflare`) → unzip `caddy_windows_amd64.exe` to `C:\caddy\`. winget/choco/scoop ship the standard build WITHOUT the module — do not use them.
-2. `setx /M CLOUDFLARE_DNS_API_TOKEN <cfut_...>` (SYSTEM env so the service sees it).
-3. Cloudflare DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`), **DNS-ONLY / grey cloud** (proxy cannot reach CGNAT 100.64/10). Optional AAAA via `tailscale ip -6`. Specific records override the wildcard.
-4. Caddyfile (adjust hosts/ports):
-   ```
-   *.example.com {
-       tls {
-           dns cloudflare {env.CLOUDFLARE_DNS_API_TOKEN}
-           resolvers 1.1.1.1
-       }
-       @agent host agent.example.com
-       handle @agent { reverse_proxy 127.0.0.1:PORT }
-   }
-   ```
-5. Always-on: run as Windows service (sc.exe / NSSM) or Task Scheduler at startup.
-6. Recommendation remains Option B first (`tailscale serve`, zero cost, 2 commands); Phase 4 only if the domain exists.
+1. Domain at HostUp (client area; DNS zone auto-created). HostUp API key with scopes `read:dns`, `write:dns`, `read:domains`.
+2. `setx /M HOSTUP_API_KEY <key>` (SYSTEM env so scheduled tasks see it).
+3. Install lego (`winget install --id AEPos lego` — verify id), issue the wildcard: `lego --dns hostup -d "*.example.com" -d example.com run` → certs in `.lego\certificates\` (move to `C:\caddy\certs\`). Schedule `lego ... renew --days 30` daily.
+4. HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA via `tailscale ip -6`. Specific records override the wildcard. (Headless alternative: `POST /api/v2/dns-zones/{id}/records`.)
+5. Install Caddy — STANDARD winget build works (no custom module needed; lego already fetched the cert). Caddyfile serves the lego cert files (`auto_https off`), one `@host`/`handle` pair per subdomain.
+6. Always-on: NSSM service or Task Scheduler at startup.
+7. Recommendation remains Option B first (`tailscale serve`, zero cost, 2 commands); Phase 4 only if the domain exists.
 
 **Exit criteria (observable):**
 - `https://agent.example.com` resolves from phone over Tailscale, valid padlock (DNS-01 wildcard cert).

@@ -38,7 +38,7 @@ Check the exact URL:
 ```powershell
 tailscale serve status
 ```
-Undo if ever needed: `tailscale serve reset`.
+Undo if ever needed: `tailscale serve reset` — but note it wipes ALL serve mappings on this PC (including any added later in skill 05). Prefer `tailscale serve --https=443 off` to remove just this mapping.
 
 ### 5. Install Pocket ID binary
 ```powershell
@@ -113,7 +113,7 @@ Headless alternative (no browser): set `STATIC_API_KEY` (≥16 chars) in `.env`,
 4. `tailscale serve status` shows the 1411 mapping; `hermes`-independent (Pocket ID keeps running).
 
 ## Rollback / Troubleshooting
-- `tailscale serve reset` — removes the serve mapping.
+- `tailscale serve reset` — removes ALL serve mappings (nuclear). To drop only Pocket ID: `tailscale serve --https=443 off`.
 - Passkeys suddenly all invalid → `APP_URL` changed; fix `.env` back to the original URL. Passkeys bound to the old URL cannot be re-pointed; use the one-time-access-token recovery (step 10) to log back in.
 - Firewall popup on exe start → run the netsh rule (step 7) as admin.
 - Phone can't load the URL → phone not on the same tailnet; check the Tailscale app is Connected.

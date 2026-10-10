@@ -39,8 +39,8 @@ Prove the whole setup works, in order, and fix the known failure modes. Run this
 | 7 | All Pocket ID passkeys suddenly rejected | `APP_URL` changed (passkeys are bound to it) | Restore the original URL in `C:\pocket-id\.env`, restart exe. Old passkeys stay invalid → log in with recovery: `.\pocket-id.exe one-time-access-token <username>` (prints `/lc/<token>` URL, valid 1h), re-enroll passkey |
 | 8 | Locked out of Pocket ID, passkey lost/unusable | No second factor | Recovery token (row 7's command). If the admin account name is forgotten: [agent must verify: username recovery path — RESEARCH.md only documents the token command] |
 | 9 | Pocket ID refuses to start after an older version was restored | Downgrade across a DB migration | migrations are forward-only; set `ALLOW_DOWNGRADE=true` only if you truly must roll back (accept the risk), or restore the matching newer exe |
-| 10 | Caddy DNS-01 fails: "no module named cloudflare" | winget/choco/scoop standard Caddy build lacks the module | Re-download from the official builder https://caddyserver.com/download with `github.com/caddy-dns/cloudflare` (skill 05) |
-| 11 | Custom-domain site unreachable; works via ts.net | Cloudflare proxy (orange cloud) can't reach CGNAT/Tailscale IPs (100.64/10) | Set the wildcard A record to DNS-ONLY (grey cloud) |
+| 10 | Wildcard cert issuance fails (lego) | Wrong/missing `HOSTUP_API_KEY`, or key lacks scopes | Check the key exists in the shell running lego (`echo $env:HOSTUP_API_KEY`); re-create it with scopes `read:dns`, `write:dns`, `read:domains` (skill 05 step 2) |
+| 11 | Custom-domain site unreachable; works via ts.net | Wildcard A record missing or points at the wrong IP | HostUp DNS: A record `*` → PC's Tailscale IP (`tailscale ip -4`). Verify with `Resolve-DnsName agent.example.com` |
 
 ## Maintenance
 

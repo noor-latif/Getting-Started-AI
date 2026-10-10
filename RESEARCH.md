@@ -10,7 +10,7 @@ Every claim below was verified against live docs this session. `[UNVERIFIED]` ma
 | 2 | Groq — https://console.groq.com (key at console.groq.com/keys) | Free tier, no card | Account + 1 API key | `GROQ_API_KEY` |
 | 3 | Telegram @BotFather — https://t.me/BotFather | Free | 1 bot via `/newbot` (username must end `bot`); token format `123456789:ABCdef...`, shown once, `/revoke` if leaked | `TELEGRAM_BOT_TOKEN` |
 | 4 | Tailscale — https://login.tailscale.com | Personal plan free: up to 6 users, unlimited user devices, no card | Free tailnet; Windows client (https://tailscale.com/docs/install/windows) + Android app (com.tailscale.ipn); same login on both | none (GUI login) |
-| 5 | Cloudflare (OPTIONAL, only for custom-domain routing) — https://dash.cloudflare.com/sign-up | $0 DNS; domain at-cost (.com $10.46/yr at registrar.cloudflare.com; **.se NOT sold by Cloudflare** — buy elsewhere, point NS at Cloudflare) | Free account; API token: `Zone → DNS → Edit` + `Zone → Zone → Read`, scoped to the zone, `cfut_`-prefixed | `CLOUDFLARE_DNS_API_TOKEN` |
+| 5 | HostUp (OPTIONAL, only for custom-domain routing) — https://hostup.se | Domain at-cost (**.se sold natively here** — Cloudflare Registrar does NOT sell .se); DNS management included; same account can spin up cheap VPSes later | Account; API key with scopes `read:dns`, `write:dns`, `read:domains` (what the lego hostup DNS-01 provider requires) | `HOSTUP_API_KEY` |
 | 6 | Edge TTS | $0, no key, no account | Nothing — Hermes default TTS | none |
 | 7 | Hermes Agent itself | $0 open source; Nous Portal is OPTIONAL paid — NOT used here | No account | — |
 
@@ -88,25 +88,27 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 
 ## 4. Private web routing — two options
 
-### Option A: Caddy + Cloudflare DNS-01 wildcard (custom domain)
-- Caddy install: official download builder https://caddyserver.com/download — Platform "Windows amd64" + module `github.com/caddy-dns/cloudflare` → unzip `caddy_windows_amd64.exe` to `C:\caddy\`. **winget/choco/scoop ship standard build WITHOUT the cloudflare module** (would need xcaddy rebuild) — use the builder.
-- Token: `CLOUDFLARE_DNS_API_TOKEN` with Zone:DNS:Edit + Zone:Read, scoped to zone. Set as SYSTEM env (`setx /M`) so the service sees it.
-- Cloudflare DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`), **DNS-ONLY (grey cloud)** — Cloudflare proxy cannot reach CGNAT 100.64/10. Optional AAAA with `tailscale ip -6`. Specific records override the wildcard.
-- Caddyfile:
+### Option A: HostUp DNS + lego DNS-01 wildcard + Caddy (custom domain)
+- Domain: buy/register/transfer at HostUp (hostup.se) — `.se` sold natively (Cloudflare Registrar does NOT sell .se); DNS zone auto-created.
+- HostUp API key scopes: `read:dns`, `write:dns`, `read:domains` (exactly what lego's hostup provider requires). DNS records API: `GET/POST /api/v2/dns-zones/{id}/records` (https://developer.hostup.se).
+- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/): `HOSTUP_API_KEY=... lego --dns hostup -d "*.example.com" -d example.com run` → certs in `.lego\certificates\`; renew with `... renew --days 30` on a daily Task Scheduler job.
+- **Because lego fetches the cert, a STANDARD Caddy build works** (`winget install CaddyServer.Caddy`) — no download-builder module, no xcaddy. Caddy serves the lego cert files (`auto_https off`, `tls <crt> <key>`).
+- HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA with `tailscale ip -6`. Specific records override the wildcard.
+- Caddyfile (adjust domain/ports):
 ```
-*.example.com {
-    tls {
-        dns cloudflare {env.CLOUDFLARE_DNS_API_TOKEN}
-        resolvers 1.1.1.1
-    }
+{
+    auto_https off
+}
+*.example.com:443 {
+    tls C:\caddy\certs\_.example.com.crt C:\caddy\certs\_.example.com.key
     @agent host agent.example.com
     handle @agent { reverse_proxy 127.0.0.1:PORT }
 }
 ```
-- Always-on: run as Windows service (sc.exe / NSSM) or Task Scheduler at startup.
-- Direct route: `subscale`-style — Caddy `dial` accepts full host:port for cross-machine targets.
+- Always-on: run as Windows service (NSSM) or Task Scheduler at startup.
+- Direct route: Caddy `reverse_proxy` accepts full host:port for cross-machine targets.
 
-### Option B (LAZY PATH — no domain, no Caddy, no Cloudflare): Tailscale serve
+### Option B (LAZY PATH — no domain, no Caddy, no HostUp): Tailscale serve
 - Prereqs (one-time, Tailscale admin console → DNS): MagicDNS enabled + HTTPS Certificates enabled.
 - `tailscale serve --bg 3000` (= `--bg --https=443 localhost:3000`) → https://machine.tailnet-name.ts.net — persists across reboots, auto Let's Encrypt cert for the ts.net name, public CA-trusted.
 - Reset: `tailscale serve reset`; status: `tailscale serve status`. Public exposure variant: `tailscale funnel 3000`.
@@ -118,8 +120,9 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 - https://github.com/NousResearch/hermes-agent (issues #35692, PR #45610)
 - https://pocket-id.org/docs/ (+ setup/installation, setup/reverse-proxy, setup/connect-an-app, configuration/environment-variables, troubleshooting/account-recovery)
 - https://github.com/pocket-id/pocket-id/releases (v2.18.0)
-- https://caddyserver.com/download, https://github.com/caddy-dns/cloudflare
+- https://developer.hostup.se (API v2: dns-zones/records, scopes), https://go-acme.github.io/lego/dns/hostup/ (lego hostup DNS-01 provider, since v5.0), https://hostup.se/en/support/guide-for-hantering-av-dns/
+- https://caddyserver.com/download (standard build sufficient in the lego path)
 - https://tailscale.com/docs/reference/tailscale-cli/serve, https://tailscale.com/kb/1242/tailscale-serve
 - https://console.groq.com/docs/rate-limits, /docs/deprecations
 - https://api.surplusintelligence.ai/v1/models (live 200, deepseek-v4.1-flash present)
-- https://registrar.cloudflare.com pricing (verified .com $10.46/yr)
+- HostUp domain pricing: client area (at-cost; .se natively supported)

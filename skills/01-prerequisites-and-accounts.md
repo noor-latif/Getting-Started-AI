@@ -16,7 +16,7 @@ Create every account and key needed for the whole setup, before installing anyth
 | 2 | Groq | Free tier, no card | https://console.groq.com | `GROQ_API_KEY` | HUMAN STEP |
 | 3 | Telegram bot | Free | https://t.me/BotFather | `TELEGRAM_BOT_TOKEN` | HUMAN STEP |
 | 4 | Tailscale | Free (≤6 users, no card) | https://login.tailscale.com | none (GUI login) | HUMAN STEP |
-| 5 | Cloudflare | $0 DNS | https://dash.cloudflare.com/sign-up | `CLOUDFLARE_DNS_API_TOKEN` | OPTIONAL — skip now, needed only for custom-domain routing (skills 05–06) |
+| 5 | HostUp | Domain at-cost (.se natively supported); DNS included | https://hostup.se | `HOSTUP_API_KEY` | OPTIONAL — skip now, needed only for custom-domain routing (skills 05–06). Key scopes: `read:dns`, `write:dns`, `read:domains` |
 | 6 | Edge TTS | $0, no key | none | none | Nothing to do — Hermes default TTS |
 
 ## Steps
@@ -53,7 +53,7 @@ TELEGRAM_BOT_TOKEN=123456789:ABCdef...
 TELEGRAM_ALLOWED_USERS=123456789
 ```
 
-Optional, only for skills 05–06: `CLOUDFLARE_DNS_API_TOKEN=cfut_...` (Cloudflare → My Profile → API Tokens: permissions `Zone → DNS → Edit` + `Zone → Zone → Read`, scoped to the zone).
+Optional, only for skills 05–06: `HOSTUP_API_KEY=...` (HostUp → dashboard → API keys: scopes `read:dns`, `write:dns`, `read:domains`). Note: this key goes in as a SYSTEM env var (`setx /M HOSTUP_API_KEY`) when Phase 4 runs, because lego/Caddy's scheduled tasks must see it — handled in skill 05.
 
 ## Security rules (non-negotiable)
 - Secrets ONLY in `%LOCALAPPDATA%\hermes\.env`. Never in Windows user/system env vars, never in chat logs, never in screenshots.

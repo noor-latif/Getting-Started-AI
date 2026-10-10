@@ -2,6 +2,8 @@
 
 An agent-executable roadmap for standing up a private AI assistant on a native Windows 10/11 x64 PC: **Hermes Agent** talking Telegram voice notes in and spoken replies out, auto-starting at sign-in, with Pocket ID single sign-on guarding private web services, all reachable from the phone through Tailscale. (True unattended 24/7 across Windows-Update reboots needs the skill 03 sign-in caveat — Telegram queues messages meanwhile.) Every cloud dependency is free-tier or prepaid by the owner; the roadmap is written so an AI agent can execute it top-to-bottom, with the few unavoidable human steps (bot token, signups, passkey enrollment) explicitly marked **HUMAN STEP**.
 
+> **AI agent?** Read `AGENTS.md` first — then `CONTEXT.md`. A bare "implement this repo" should work top-to-bottom.
+
 ## Accounts & keys
 
 Source: RESEARCH.md §1. Hermes secrets live ONLY in `%LOCALAPPDATA%\hermes\.env` — never Windows env vars. (Phase 4 exception: the HostUp key lives in a lego-owned file, skills 01/05.)

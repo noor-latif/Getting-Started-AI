@@ -18,7 +18,8 @@ Install Hermes Agent natively on Windows (no WSL, no Docker), point it at Surplu
    ```
    If `hermes update` cannot run on a very old install, re-running `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` over an existing checkout is the documented rerun path ([agent must verify: installer preserves config.yaml/.env/sessions — docs say user data stays outside the package and "do not remove the data root to repair", but no explicit statement covers install.ps1 rerun]). The update itself snapshots config.yaml/.env before pulling (quick pre-update snapshot).
 4. On a v2026.7.1+ build, refresh the autostart task: `hermes gateway uninstall`, then `hermes gateway install`; verify `hermes gateway status` (old task bugs fixed in v2026.7.1).
-5. The rest of skill 02 continues unchanged — steps 3–4 are idempotent: keep existing values, fix only what this skill pins (`model.default`, `stt.provider: groq`, `tts.provider: edge`).
+5. Reconcile the old `config.yaml` with options added since the installed version: `hermes config check`, then `hermes config migrate` (interactive; verified: https://hermes-agent.nousresearch.com/docs/getting-started/updating). The manual re-pin later in this skill only fixes the three values it pins — this picks up the rest.
+6. The rest of skill 02 continues unchanged — steps 3–4 are idempotent: keep existing values, fix only what this skill pins (`model.default`, `stt.provider: groq`, `tts.provider: edge`).
 
 ### 1. Install
 PowerShell (normal window, NO admin):

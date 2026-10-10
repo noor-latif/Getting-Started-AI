@@ -4,3 +4,4 @@
 *.key
 *.pem
 SESSION_HANDOFF*.md
+.agents/

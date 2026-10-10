@@ -10,11 +10,12 @@ Every claim below was verified against live docs this session. `[UNVERIFIED]` ma
 | 2 | Groq — https://console.groq.com (key at console.groq.com/keys) | Free tier, no card | Account + 1 API key | `GROQ_API_KEY` |
 | 3 | Telegram @BotFather — https://t.me/BotFather | Free | 1 bot via `/newbot` (username must end `bot`); token format `123456789:ABCdef...`, shown once, `/revoke` if leaked | `TELEGRAM_BOT_TOKEN` |
 | 4 | Tailscale — https://login.tailscale.com | Personal plan free: up to 6 users, unlimited user devices, no card | Free tailnet; Windows client (https://tailscale.com/docs/install/windows) + Android app (com.tailscale.ipn); same login on both | none (GUI login) |
-| 5 | HostUp (OPTIONAL, only for custom-domain routing) — https://hostup.se | Domain at-cost (**.se sold natively here** — Cloudflare Registrar does NOT sell .se); DNS management included; same account can spin up cheap VPSes later | Account; API key with scopes `read:dns`, `write:dns`, `read:domains` (what the lego hostup DNS-01 provider requires) | `HOSTUP_API_KEY` |
+| 5 | HostUp (OPTIONAL, only for custom-domain routing) — https://hostup.se | Domain at-cost (**.se sold natively here** — Cloudflare Registrar does NOT sell .se); DNS management included; same account can spin up cheap VPSes later | Account; API key with scopes `read:dns`, `write:dns`, `read:domains` (what the lego hostup DNS-01 provider requires) | `HOSTUP_API_KEY_FILE` → `%LOCALAPPDATA%\caddy\secrets\hostup_api_key` (a file, never a system env var — skill 05) |
 | 6 | Edge TTS | $0, no key, no account | Nothing — Hermes default TTS | none |
 | 7 | Hermes Agent itself | $0 open source; Nous Portal is OPTIONAL paid — NOT used here | No account | — |
 
 - Groq free STT limits (whisper-large-v3-turbo): 20 RPM, 2,000 req/day, 28,800 audio-sec/day (8h), 25 MB/file — vastly more than one user's voice memos need.
+- Edge TTS fragility (verified via rany2/edge-tts issues #290, #401, #432): Microsoft repeatedly breaks this UNOFFICIAL free endpoint (403s, DRM tokens, ~40h outage Aug 2025; datacenter IPs blocked — residential/home IPs fine, which is this setup's case). Fix when it breaks: update Hermes (rolls the bundled edge-tts lib forward). Emergency fallback: Groq's free-tier `canopylabs/orpheus-v1-english` TTS (100 req/day, english-only) or answer in text until fixed.
 - Per-tool keys (FIRECRAWL_API_KEY, BROWSER_USE_API_KEY, FAL_KEY, ELEVENLABS_API_KEY) are all OPTIONAL — leave unset.
 - Telegram `TELEGRAM_ALLOWED_USERS` = friend's numeric user id (get from @userinfobot). NEVER `TELEGRAM_ALLOW_ALL_USERS`.
 - Secrets live ONLY in `%LOCALAPPDATA%\hermes\.env` — not Windows user env vars.
@@ -77,7 +78,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 
 - Asset: https://github.com/pocket-id/pocket-id/releases/latest/download/pocket-id_windows_amd64.exe (checksums.txt alongside; arm64 exe exists — NOT for x64).
 - Single Go binary, embedded frontend, built-in SQLite (data/ dir created in working dir: pocket-id.db + uploads/).
-- Required env (`.env` next to exe, godotenv autoload): `APP_URL` (exact final URL, no path — passkeys bind to it; changing later invalidates passkeys) + `ENCRYPTION_KEY` (≥16 bytes, e.g. `openssl rand -base64 32`).
+- Required env (`.env` next to exe, godotenv autoload): `APP_URL` (exact final URL, no path — passkeys bind to it; changing later invalidates passkeys) + `ENCRYPTION_KEY` (≥16 bytes — generate with the PowerShell one-liner in skills/04 step 6; there is no openssl on stock Windows).
 - `PORT` default 1411; `DB_CONNECTION_STRING` default SQLite; `PUBLIC_URL` DOES NOT EXIST (renamed APP_URL in v1); `APP_ENV` exists but unnecessary — omit. `TRUST_PROXY=127.0.0.1` when behind local Caddy. `STATIC_API_KEY` (≥16 chars) enables headless admin API for OIDC client creation.
 - Run: `.\pocket-id.exe`. Windows Firewall will prompt on first run — pre-authorize inbound 1411 (`netsh advfirewall`) to avoid interactive popup `[INFERENCE: standard Windows behavior]`.
 - First-run: open `APP_URL/setup` — create account + enroll passkey. **This step is inherently interactive (one human/browser step). NO default admin credentials exist.**
@@ -91,7 +92,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 ### Option A: HostUp DNS + lego DNS-01 wildcard + Caddy (custom domain)
 - Domain: buy/register/transfer at HostUp (hostup.se) — `.se` sold natively (Cloudflare Registrar does NOT sell .se); DNS zone auto-created.
 - HostUp API key scopes: `read:dns`, `write:dns`, `read:domains` (exactly what lego's hostup provider requires). DNS records API: `GET/POST /api/v2/dns-zones/{id}/records` (https://developer.hostup.se).
-- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/). lego is NOT in the winget catalog — install from GitHub releases zip (`lego_v<ver>_windows_amd64.zip` → `C:\caddy\lego\lego.exe`). Key via file: `HOSTUP_API_KEY_FILE=C:\caddy\secrets\hostup_api_key` (hostup provider supports `_FILE` env suffixes). ALWAYS pin `--path C:\caddy\lego` on run AND renew so Caddy serves the renewed files: `lego --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com run` / `... renew --days 30` (daily Task Scheduler + `caddy reload`).
+- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/). lego is NOT in the winget catalog — install from GitHub releases zip (`lego_v<ver>_windows_amd64.zip` → `%LOCALAPPDATA%\caddy\lego\lego.exe`). Key via file: `HOSTUP_API_KEY_FILE=%LOCALAPPDATA%\caddy\secrets\hostup_api_key` (hostup provider supports `_FILE` env suffixes). ALWAYS pin `--path %LOCALAPPDATA%\caddy\lego` on run AND renew so Caddy serves the renewed files: `lego --path %LOCALAPPDATA%\caddy\lego --dns hostup -d "*.example.com" -d example.com run` / `... renew --days 30` (daily Task Scheduler + `caddy reload`).
 - **Because lego fetches the cert, a STANDARD Caddy build works** (`winget install CaddyServer.Caddy`) — no download-builder module, no xcaddy. Caddy serves the lego cert files (`auto_https off`, `tls <crt> <key>`).
 - HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA with `tailscale ip -6`. Specific records override the wildcard.
 - Caddyfile (adjust domain/ports):
@@ -100,12 +101,12 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
     auto_https off
 }
 *.example.com:443 {
-    tls C:\caddy\lego\certificates\_.example.com.crt C:\caddy\lego\certificates\_.example.com.key
+    tls %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.crt %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.key
     @agent host agent.example.com
     handle @agent { reverse_proxy 127.0.0.1:PORT }
 }
 ```
-- Always-on: run as Windows service (NSSM) or Task Scheduler at startup.
+- Always-on: Task Scheduler at startup, 'Run whether user is logged on or not' (survives Windows-Update reboots without a sign-in). No NSSM needed.
 - Direct route: Caddy `reverse_proxy` accepts full host:port for cross-machine targets.
 
 ### Option B (LAZY PATH — no domain, no Caddy, no HostUp): Tailscale serve

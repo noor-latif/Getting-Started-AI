@@ -16,7 +16,7 @@ Create every account and key needed for the whole setup, before installing anyth
 | 2 | Groq | Free tier, no card | https://console.groq.com | `GROQ_API_KEY` | HUMAN STEP |
 | 3 | Telegram bot | Free | https://t.me/BotFather | `TELEGRAM_BOT_TOKEN` | HUMAN STEP |
 | 4 | Tailscale | Free (≤6 users, no card) | https://login.tailscale.com | none (GUI login) | HUMAN STEP |
-| 5 | HostUp | Domain at-cost (.se natively supported); DNS included | https://hostup.se | `HOSTUP_API_KEY` | OPTIONAL — skip now, needed only for custom-domain routing (skills 05–06). Key scopes: `read:dns`, `write:dns`, `read:domains` |
+| 5 | HostUp | Domain at-cost (.se natively supported); DNS included | https://hostup.se | `HOSTUP_API_KEY_FILE` → file (skill 05; NOT in Hermes .env) | OPTIONAL — skip now, needed only for custom-domain routing (skills 05–06). Key scopes: `read:dns`, `write:dns`, `read:domains` |
 | 6 | Edge TTS | $0, no key | none | none | Nothing to do — Hermes default TTS |
 
 ## Steps
@@ -53,12 +53,12 @@ TELEGRAM_BOT_TOKEN=123456789:ABCdef...
 TELEGRAM_ALLOWED_USERS=123456789
 ```
 
-Optional, only for skills 05–06: the HostUp API key does NOT go in this .env and NOT in system env vars — skill 05 stores it in `C:\caddy\secrets\hostup_api_key` and points lego at it via `HOSTUP_API_KEY_FILE`. Get the key (scopes `read:dns`, `write:dns`, `read:domains`) from the HostUp dashboard when Phase 4 runs.
+Optional, only for skills 05–06: the HostUp API key does NOT go in this .env and NOT in system env vars — skill 05 stores it in `%LOCALAPPDATA%\caddy\secrets\hostup_api_key` and points lego at it via `HOSTUP_API_KEY_FILE`. Get the key (scopes `read:dns`, `write:dns`, `read:domains`) from the HostUp dashboard when Phase 4 runs.
 
 ## Security rules (non-negotiable)
 - Hermes secrets ONLY in `%LOCALAPPDATA%\hermes\.env`. Never in Windows user/system env vars, never in chat logs, never in screenshots.
 - NEVER set `TELEGRAM_ALLOW_ALL_USERS`. Only `TELEGRAM_ALLOWED_USERS` with the friend's numeric id.
-- ONE exception, introduced only if Phase 4 runs: the HostUp key lives in `C:\caddy\secrets\hostup_api_key` (a plain file), because lego is not a Hermes process and scheduled tasks must read it headlessly. It never goes into Hermes' .env, system env vars, or anywhere else. Set up in skill 05, not here.
+- ONE exception, introduced only if Phase 4 runs: the HostUp key lives in `%LOCALAPPDATA%\caddy\secrets\hostup_api_key` (a plain file in the friend's own app-data folder), because lego is not a Hermes process and scheduled tasks must read it headlessly. It never goes into Hermes' .env, system env vars, or the `C:\` root. Set up in skill 05, not here.
 - Telegram token leaked → `/revoke` in BotFather immediately, replace in `.env`, restart gateway.
 - Per-tool keys (`FIRECRAWL_API_KEY`, `BROWSER_USE_API_KEY`, `FAL_KEY`, `ELEVENLABS_API_KEY`) are optional — leave unset.
 

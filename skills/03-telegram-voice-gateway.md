@@ -36,6 +36,10 @@ hermes gateway install
 ```
 - Creates a Windows scheduled task `Hermes_Gateway` (`schtasks`, ONLOGON trigger, `/RL LIMITED`) — no admin prompt, no UAC. (Startup-folder fallback exists if task creation fails.)
 - Autostart is installed ONLY by this explicit command.
+- **Honest caveat — what "24/7" does NOT cover:** an ONLOGON task starts when someone SIGNS IN, not merely when the machine boots. Windows Update reboots the PC on its own outside active hours (~monthly), and after such a reboot the gateway stays offline until the friend next logs in. Two mitigations, pick one:
+  1. **Simplest (recommended):** Settings → Accounts → Sign-in options → turn OFF "Use my sign-in info to automatically finish setting up my device after an update" and set up the PC so it auto-locks to the logged-in session, OR just accept ~once-a-month downtime of a few hours until someone sits at the PC. Telegram queues the voice notes; nothing is lost, replies are just late.
+  2. **Full unattended:** auto-logon via netplwds/`Sysinternals Autologon` (auto-signs the user at boot) + auto-lock on a hotkey or session timeout. Trade-off: anyone with physical access to the PC gets into his session (passkey/FDE still protect vaulted secrets). Only do this if the PC lives in a private room.
+  Task Scheduler's own "Restart on failure" does NOT rescue this (upstream Hermes bug #91097, open: the VBS launcher hides the gateway's exit from the scheduler, so crash-restart never fires — a dead gateway stays dead until `hermes gateway restart`).
 
 ### 4. Manage the gateway
 ```powershell

@@ -42,8 +42,8 @@ Undo if ever needed: `tailscale serve reset` — but note it wipes ALL serve map
 
 ### 5. Install Pocket ID binary
 ```powershell
-mkdir C:\pocket-id
-cd C:\pocket-id
+mkdir "$env:LOCALAPPDATA\pocket-id" -Force
+cd "$env:LOCALAPPDATA\pocket-id"
 curl.exe -L -o pocket-id.exe https://github.com/pocket-id/pocket-id/releases/latest/download/pocket-id_windows_amd64.exe
 curl.exe -L -o checksums.txt https://github.com/pocket-id/pocket-id/releases/latest/download/checksums.txt
 ```
@@ -59,7 +59,7 @@ Generate the encryption key:
 ```powershell
 $b = [byte[]]::new(32); [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
 ```
-Create `C:\pocket-id\.env` with (replace placeholders):
+Create `%LOCALAPPDATA%\pocket-id\.env` with (replace placeholders):
 ```ini
 APP_URL=https://<machine>.<tailnet-name>.ts.net
 ENCRYPTION_KEY=<paste-the-generated-base64>
@@ -77,12 +77,20 @@ Run in an **admin** PowerShell. Otherwise Windows Firewall prompts interactively
 
 ### 8. Run Pocket ID
 ```powershell
-cd C:\pocket-id
+cd "$env:LOCALAPPDATA\pocket-id"
 .\pocket-id.exe
 ```
 Leave this window open. It creates `data\` (SQLite DB + uploads) in the working dir.
 
-### 9. HUMAN STEP — first-run account setup
+### 9. Run Pocket ID at sign-in (24/7)
+Once step 10 (first-run setup) works, install autostart so Pocket ID comes back after a reboot without anyone re-running step 8:
+```powershell
+schtasks /Create /TN PocketID /TR "\"%LOCALAPPDATA%\pocket-id\pocket-id.exe\"" /SC ONLOGON /RL LIMITED /F
+```
+- No admin needed (`/RL LIMITED` = runs as the logged-in user, same pattern as skill 03's `Hermes_Gateway` task). If `schtasks` is refused, use the Startup-folder fallback from skill 03.
+- Same honest caveat as skill 03 step 3: ONLOGON starts at SIGN-IN, not at power-on — after a Windows-Update reboot Pocket ID stays offline until someone logs in (see skill 03 for the mitigation).
+
+### 10. HUMAN STEP — first-run account setup
 In a browser (on the PC or the phone, both on the tailnet), open:
 ```
 https://<machine>.<tailnet-name>.ts.net/setup
@@ -91,13 +99,13 @@ https://<machine>.<tailnet-name>.ts.net/setup
 - Enroll a passkey (Windows Hello / phone biometrics).
 No default admin credentials exist; this is the one unavoidable human step. HTTPS is mandatory for passkeys — do NOT try to do this over plain http://.
 
-### 10. Recovery token (if passkey is ever lost)
+### 11. Recovery token (if passkey is ever lost)
 ```powershell
 .\pocket-id.exe one-time-access-token <username>
 ```
 Prints a `/lc/<token>` login URL, valid 1 hour.
 
-### 11. Create an OIDC client (when the first app needs SSO)
+### 12. Create an OIDC client (when the first app needs SSO)
 UI path: log in as admin → Administration → OIDC Clients → Add.
 - Name: the app's name.
 - Callback URL: from the app's SSO docs.
@@ -109,12 +117,13 @@ Headless alternative (no browser): set `STATIC_API_KEY` (≥16 chars) in `.env`,
 ## Verification
 1. From the **phone** (on the tailnet, Wi-Fi or mobile data): open `https://<machine>.<tailnet-name>.ts.net` — page loads with a valid padlock (public CA-trusted TLS, no warning).
 2. Passkey login works from the browser.
-3. Register a test OIDC client per step 11 and complete a full login round-trip into a sample app ([agent must verify: pick a trivial OIDC test app — e.g. any app with SSO support the owner actually plans to use; no generic test app is specified in RESEARCH.md]).
+3. Register a test OIDC client per step 12 and complete a full login round-trip into a sample app ([agent must verify: pick a trivial OIDC test app — e.g. any app with SSO support the owner actually plans to use; no generic test app is specified in RESEARCH.md]).
 4. `tailscale serve status` shows the 1411 mapping; `hermes`-independent (Pocket ID keeps running).
+5. Reboot the PC, sign in, wait ~1 minute: Pocket ID is reachable again at the ts.net URL with NO manual start — autostart task fired (`schtasks /Run /TN PocketID` is only needed if it didn't; check with `schtasks /Query /TN PocketID`).
 
 ## Rollback / Troubleshooting
 - `tailscale serve reset` — removes ALL serve mappings (nuclear). To drop only Pocket ID: `tailscale serve --https=443 off`.
-- Passkeys suddenly all invalid → `APP_URL` changed; fix `.env` back to the original URL. Passkeys bound to the old URL cannot be re-pointed; use the one-time-access-token recovery (step 10) to log back in.
+- Passkeys suddenly all invalid → `APP_URL` changed; fix `.env` back to the original URL. Passkeys bound to the old URL cannot be re-pointed; use the one-time-access-token recovery (step 11) to log back in.
 - Firewall popup on exe start → run the netsh rule (step 7) as admin.
 - Phone can't load the URL → phone not on the same tailnet; check the Tailscale app is Connected.
 - To upgrade Pocket ID later: stop the exe, replace it, restart — migrations run automatically; downgrades are blocked without `ALLOW_DOWNGRADE=true`.

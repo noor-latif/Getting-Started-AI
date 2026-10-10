@@ -34,7 +34,7 @@ flowchart TD
 - Verify Surplus key live: `curl https://api.surplusintelligence.ai/v1/models` with `Authorization: Bearer <key>` — expect 200 and `deepseek-v4.1-flash` in list.
 
 **Inputs:** none yet.
-**Exit criteria:** `SURPLUS_API_KEY`, `GROQ_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USERS` values known; Tailscale login credentials available; (optional) `HOSTUP_API_KEY` + domain name recorded. Secrets still only in a temporary local scratch — never committed, never echoed.
+**Exit criteria:** `SURPLUS_API_KEY`, `GROQ_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USERS` values known; Tailscale login credentials available; (optional) HostUp key + domain name recorded (the key is delivered as a file later in skill 05 — never a system env var). Secrets still only in a temporary local scratch — never committed, never echoed.
 
 ## Phase 1 — Hermes install + provider config (RESEARCH.md §2)
 
@@ -105,34 +105,36 @@ flowchart TD
 **Steps (detail in skill file):**
 1. Install Tailscale Windows client (https://tailscale.com/docs/install/windows) + Android app `com.tailscale.ipn` — same tailnet login both. One-time in Tailscale admin console → DNS: enable MagicDNS + HTTPS Certificates.
 2. Download Pocket ID v2.18.0 Windows binary: https://github.com/pocket-id/pocket-id/releases/latest/download/pocket-id_windows_amd64.exe (verify checksums.txt; amd64 NOT arm64). Single Go binary, embedded SQLite (`data/` with pocket-id.db + uploads/ in working dir).
-3. `.env` next to exe: `APP_URL=https://<machine>.tailnet-name.ts.net` (exact final URL, no path — passkeys bind to it; changing later invalidates them) + `ENCRYPTION_KEY` (≥16 bytes, e.g. `openssl rand -base64 32`). PUBLIC_URL does not exist (renamed APP_URL in v1); omit APP_ENV. `PORT` default 1411.
+3. `.env` next to exe: `APP_URL=https://<machine>.tailnet-name.ts.net` (exact final URL, no path — passkeys bind to it; changing later invalidates them) + `ENCRYPTION_KEY` (≥16 bytes, PowerShell generator in skill 04 step 6 — no openssl). PUBLIC_URL does not exist (renamed APP_URL in v1); omit APP_ENV. `PORT` default 1411.
 4. Pre-authorize inbound 1411 in Windows Firewall (`netsh advfirewall`) to avoid interactive popup on first run [INFERENCE: standard Windows behavior].
 5. `tailscale serve --bg 1411` → HTTPS with auto Let's Encrypt cert. Status: `tailscale serve status`. (Later services are ADDED as more mappings — never `serve reset` unless a full wipe is intended; see skill 05.)
 6. Run `.\pocket-id.exe`.
-7. **HUMAN STEP — inherently interactive, no default admin credentials exist:** open `APP_URL/setup`, create account, enroll passkey.
-8. Recovery path (document, don't run): `.\pocket-id.exe one-time-access-token <username>` → `/lc/<token>` URL valid 1h.
-9. OIDC client (for the first protected app): Administration → OIDC Clients → Add (name, callback URL from app docs) → client ID/secret + discovery URL `https://<machine>.ts.net/.well-known/openid-configuration`. New clients allow NO ONE by default → Access tab → All Users or group. Scopes: `openid profile email`.
+7. Autostart at sign-in: `schtasks /Create /TN PocketID /TR "\"%LOCALAPPDATA%\pocket-id\pocket-id.exe\"" /SC ONLOGON /RL LIMITED /F` (no admin; ONLOGON needs a sign-in after a reboot — same caveat as skill 03).
+8. **HUMAN STEP — inherently interactive, no default admin credentials exist:** open `APP_URL/setup`, create account, enroll passkey.
+9. Recovery path (document, don't run): `.\pocket-id.exe one-time-access-token <username>` → `/lc/<token>` URL valid 1h.
+10. OIDC client (for the first protected app): Administration → OIDC Clients → Add (name, callback URL from app docs) → client ID/secret + discovery URL `https://<machine>.ts.net/.well-known/openid-configuration`. New clients allow NO ONE by default → Access tab → All Users or group. Scopes: `openid profile email`.
 
 **Exit criteria (observable):**
 - From phone (Tailscale on): `https://<machine>.ts.net` loads Pocket ID login over valid HTTPS.
 - Passkey sign-in works; enrollment completed.
 - Discovery URL returns `openid-configuration` JSON.
+- After reboot AND sign-in, Pocket ID answers at the ts.net URL with no manual start (the PocketID ONLOGON task fired).
 
 ## Phase 4 (OPTIONAL) — HostUp DNS + lego wildcard + Caddy (RESEARCH.md §4-Option A)
 
 **Skill:** `skills/05-private-web-routing.md`
 **Goal:** Arbitrary subdomains of a real domain (`agent.example.com`, ...) routed to PC services over Tailscale, with wildcard DNS-01 TLS. Skip entirely unless the friend bought a domain.
-**Inputs:** domain (HostUp — `.se` natively supported), `HOSTUP_API_KEY` (Phase 0 optional item).
+**Inputs:** domain (HostUp — `.se` natively supported), HostUp API key (Phase 0 optional item 5) — delivered as a file via `HOSTUP_API_KEY_FILE`, never a system env var.
 **Skill file:** `skills/05-private-web-routing.md`
 **Estimated wall time:** 45 min.
 
 **Steps (detail in skill file):**
 1. Domain at HostUp (client area; DNS zone auto-created). HostUp API key with scopes `read:dns`, `write:dns`, `read:domains`.
-2. Key file (not env var, not Hermes .env): `C:\caddy\secrets\hostup_api_key`, read by lego via `HOSTUP_API_KEY_FILE`.
-3. Install lego from GitHub releases zip (NOT winget — lego is not in the catalog) to `C:\caddy\lego\`. Issue with a pinned `--path C:\caddy\lego`: `lego --path C:\caddy\lego --dns hostup -d "*.example.com" -d example.com run`. Daily renew task uses the SAME `--path` + `HOSTUP_API_KEY_FILE`, then `caddy reload`.
+2. Key file (not env var, not Hermes .env): `%LOCALAPPDATA%\caddy\secrets\hostup_api_key`, read by lego via `HOSTUP_API_KEY_FILE`.
+3. Install lego from GitHub releases zip (NOT winget — lego is not in the catalog) to `%LOCALAPPDATA%\caddy\lego\`. Issue with a pinned `--path "%LOCALAPPDATA%\caddy\lego"`: `lego --path ... --dns hostup -d "*.example.com" -d example.com run`. Daily renew task uses the SAME `--path` + `HOSTUP_API_KEY_FILE`, then `caddy reload`.
 4. HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA via `tailscale ip -6`. Specific records override the wildcard. (Headless alternative: `POST /api/v2/dns-zones/{id}/records`.)
-5. Install Caddy — STANDARD winget build works (no custom module needed; lego already fetched the cert). Caddyfile serves the lego cert files from `C:\caddy\lego\certificates\` (`auto_https off`), one `@host`/`handle` pair per subdomain.
-6. Always-on: NSSM service or Task Scheduler at startup.
+5. Install Caddy — STANDARD winget build works (no custom module needed; lego already fetched the cert). Caddyfile at `%LOCALAPPDATA%\caddy\Caddyfile` serves the lego cert files from `%LOCALAPPDATA%\caddy\lego\certificates\` (`auto_https off`), one `@host`/`handle` pair per subdomain.
+6. Always-on: Task Scheduler at startup ("Run whether user is logged on or not") — survives update reboots without a sign-in.
 7. Recommendation remains Option B first (`tailscale serve`, zero cost, 2 commands); Phase 4 only if the domain exists.
 
 **Exit criteria (observable):**

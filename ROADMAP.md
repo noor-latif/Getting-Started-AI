@@ -109,7 +109,7 @@ flowchart TD
 4. Pre-authorize inbound 1411 in Windows Firewall (`netsh advfirewall`) to avoid interactive popup on first run [INFERENCE: standard Windows behavior].
 5. `tailscale serve --bg 1411` → HTTPS with auto Let's Encrypt cert. Status: `tailscale serve status`. (Later services are ADDED as more mappings — never `serve reset` unless a full wipe is intended; see skill 05.)
 6. Run `.\pocket-id.exe`.
-7. Autostart at sign-in: `schtasks /Create /TN PocketID /TR "\"%LOCALAPPDATA%\pocket-id\pocket-id.exe\"" /SC ONLOGON /RL LIMITED /F` (no admin; ONLOGON needs a sign-in after a reboot — same caveat as skill 03).
+7. Autostart at sign-in: `Register-ScheduledTask` PocketID at logon with working directory `%LOCALAPPDATA%\pocket-id` (skill 04 step 9 — WorkingDirectory is REQUIRED: the exe writes its `data\` folder relative to cwd).
 8. **HUMAN STEP — inherently interactive, no default admin credentials exist:** open `APP_URL/setup`, create account, enroll passkey.
 9. Recovery path (document, don't run): `.\pocket-id.exe one-time-access-token <username>` → `/lc/<token>` URL valid 1h.
 10. OIDC client (for the first protected app): Administration → OIDC Clients → Add (name, callback URL from app docs) → client ID/secret + discovery URL `https://<machine>.ts.net/.well-known/openid-configuration`. New clients allow NO ONE by default → Access tab → All Users or group. Scopes: `openid profile email`.

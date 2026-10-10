@@ -18,7 +18,7 @@ Every claim below was verified against live docs this session. `[UNVERIFIED]` ma
 - Edge TTS fragility (verified via rany2/edge-tts issues #290, #401, #432): Microsoft repeatedly breaks this UNOFFICIAL free endpoint (403s, DRM tokens, ~40h outage Aug 2025; datacenter IPs blocked — residential/home IPs fine, which is this setup's case). Fix when it breaks: update Hermes (rolls the bundled edge-tts lib forward). Emergency fallback: Groq's free-tier `canopylabs/orpheus-v1-english` TTS (100 req/day, english-only) or answer in text until fixed.
 - Per-tool keys (FIRECRAWL_API_KEY, BROWSER_USE_API_KEY, FAL_KEY, ELEVENLABS_API_KEY) are all OPTIONAL — leave unset.
 - Telegram `TELEGRAM_ALLOWED_USERS` = friend's numeric user id (get from @userinfobot). NEVER `TELEGRAM_ALLOW_ALL_USERS`.
-- Secrets live ONLY in `%LOCALAPPDATA%\hermes\.env` — not Windows user env vars.
+- Secrets live ONLY in `%LOCALAPPDATA%\hermes\.env` — not Windows user env vars (Phase 4 exception: HostUp key as a file under `%LOCALAPPDATA%\caddy\secrets\`, see §4 Option A).
 
 ## 2. Hermes Agent on native Windows (Tier 1, x64)
 
@@ -92,7 +92,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
 ### Option A: HostUp DNS + lego DNS-01 wildcard + Caddy (custom domain)
 - Domain: buy/register/transfer at HostUp (hostup.se) — `.se` sold natively (Cloudflare Registrar does NOT sell .se); DNS zone auto-created.
 - HostUp API key scopes: `read:dns`, `write:dns`, `read:domains` (exactly what lego's hostup provider requires). DNS records API: `GET/POST /api/v2/dns-zones/{id}/records` (https://developer.hostup.se).
-- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/). lego is NOT in the winget catalog — install from GitHub releases zip (`lego_v<ver>_windows_amd64.zip` → `%LOCALAPPDATA%\caddy\lego\lego.exe`). Key via file: `HOSTUP_API_KEY_FILE=%LOCALAPPDATA%\caddy\secrets\hostup_api_key` (hostup provider supports `_FILE` env suffixes). ALWAYS pin `--path %LOCALAPPDATA%\caddy\lego` on run AND renew so Caddy serves the renewed files: `lego --path %LOCALAPPDATA%\caddy\lego --dns hostup -d "*.example.com" -d example.com run` / `... renew --days 30` (daily Task Scheduler + `caddy reload`).
+- Cert path: **lego** (go-acme) has a native HostUp DNS-01 provider since v5.0 (https://go-acme.github.io/lego/dns/hostup/). lego is NOT in the winget catalog — install from GitHub releases zip (`lego_v<ver>_windows_amd64.zip` → `%LOCALAPPDATA%\caddy\lego\lego.exe`). Key via file: `HOSTUP_API_KEY_FILE=%LOCALAPPDATA%\caddy\secrets\hostup_api_key` (hostup provider supports `_FILE` env suffixes). ALWAYS pin `--path %LOCALAPPDATA%\caddy\lego` on run AND renew so Caddy serves the renewed files: `lego --path %LOCALAPPDATA%\caddy\lego --dns hostup -d "*.example.com" -d example.com run` / `... renew --days 30` (daily Task Scheduler + `caddy reload`) — pasteable PowerShell forms with $env:LOCALAPPDATA in skills/05.
 - **Because lego fetches the cert, a STANDARD Caddy build works** (`winget install CaddyServer.Caddy`) — no download-builder module, no xcaddy. Caddy serves the lego cert files (`auto_https off`, `tls <crt> <key>`).
 - HostUp DNS: wildcard A record `*` → PC's Tailscale IP (`tailscale ip -4`). Optional AAAA with `tailscale ip -6`. Specific records override the wildcard.
 - Caddyfile (adjust domain/ports):
@@ -101,7 +101,7 @@ No key. ffmpeg needed for MP3→Opus (Telegram voice bubble) — installer provi
     auto_https off
 }
 *.example.com:443 {
-    tls %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.crt %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.key
+    tls "C:\Users\<you>\AppData\Local\caddy\lego\certificates\_.example.com.crt" "C:\Users\<you>\AppData\Local\caddy\lego\certificates\_.example.com.key"
     @agent host agent.example.com
     handle @agent { reverse_proxy 127.0.0.1:PORT }
 }

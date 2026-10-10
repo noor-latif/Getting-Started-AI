@@ -78,7 +78,7 @@ Returns `HTTP/2 200` (or the service's expected status) over valid TLS. If Pocke
    ```
    lego --path "$env:LOCALAPPDATA\caddy\lego" --dns hostup -d "*.example.com" -d example.com renew --days 30
    ```
-   Schedule that daily via Task Scheduler (task also sets `HOSTUP_API_KEY_FILE`), and reload Caddy afterwards: `caddy reload --config "%LOCALAPPDATA%\caddy\Caddyfile"` (append it to the same task).
+   Schedule that daily via Task Scheduler (task also sets `HOSTUP_API_KEY_FILE`), and reload Caddy afterwards: `caddy reload --config "$env:LOCALAPPDATA\caddy\Caddyfile"` (append it to the same task).
 6. **Wildcard DNS record** in HostUp DNS management:
    - A record: name `*` → value = PC's Tailscale IP (`tailscale ip -4`).
    - Optional AAAA with `tailscale ip -6`.
@@ -95,17 +95,17 @@ Returns `HTTP/2 200` (or the service's expected status) over valid TLS. If Pocke
        auto_https off
    }
    *.example.com:443 {
-       tls %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.crt %LOCALAPPDATA%\caddy\lego\certificates\_.example.com.key
+       tls "C:\Users\<you>\AppData\Local\caddy\lego\certificates\_.example.com.crt" "C:\Users\<you>\AppData\Local\caddy\lego\certificates\_.example.com.key"
        @agent host agent.example.com
        handle @agent { reverse_proxy 127.0.0.1:PORT }
    }
    ```
-   Add one `@name host ...` + `handle` pair per subdomain. The proxy target may be any `host:port`, including other machines on the tailnet. Write the two `tls` lines with the folder's REAL expanded path (run `echo $env:LOCALAPPDATA` and paste it in).
+   Add one `@name host ...` + `handle` pair per subdomain. The proxy target may be any `host:port`, including other machines on the tailnet. Run `echo $env:LOCALAPPDATA` once and paste the REAL path into the two quoted `tls` lines (Caddy does not expand variables; double quotes protect paths containing spaces).
 9. **Test-run:**
    ```powershell
    caddy run --config "$env:LOCALAPPDATA\caddy\Caddyfile"
    ```
-10. **Run always-on as a service.** Task Scheduler, at system startup: action = run `caddy run --config "%LOCALAPPDATA%\caddy\Caddyfile"` as the friend's user account ("Run whether user is logged on or not" — this is what survives a Windows-Update reboot; see skill 03's autostart caveat).
+10. **Run always-on as a service.** Task Scheduler, at system startup: action `caddy run --config "<real expanded path>\caddy\Caddyfile"` as the friend's user account, with "Start in" set to the same caddy folder (Caddy's data/config dir; "Run whether user is logged on or not" — this is what survives a Windows-Update reboot; see skill 03's autostart caveat).
     ([agent must verify: Task Scheduler action fields + stored credentials for the logon-off setting.])
 
 ### Verification (Option A)

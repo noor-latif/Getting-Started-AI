@@ -85,10 +85,13 @@ Leave this window open. It creates `data\` (SQLite DB + uploads) in the working 
 ### 9. Run Pocket ID at sign-in (24/7)
 Once step 10 (first-run setup) works, install autostart so Pocket ID comes back after a reboot without anyone re-running step 8:
 ```powershell
-schtasks /Create /TN PocketID /TR "\"%LOCALAPPDATA%\pocket-id\pocket-id.exe\"" /SC ONLOGON /RL LIMITED /F
+$act = New-ScheduledTaskAction -Execute "$env:LOCALAPPDATA\pocket-id\pocket-id.exe" -WorkingDirectory "$env:LOCALAPPDATA\pocket-id"
+$type = New-ScheduledTaskTrigger -AtLogOn
+$set  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+Register-ScheduledTask -TaskName PocketID -Action $act -Trigger $type -Settings $set
 ```
-- No admin needed (`/RL LIMITED` = runs as the logged-in user, same pattern as skill 03's `Hermes_Gateway` task). If `schtasks` is refused, use the Startup-folder fallback from skill 03.
-- Same honest caveat as skill 03 step 3: ONLOGON starts at SIGN-IN, not at power-on — after a Windows-Update reboot Pocket ID stays offline until someone logs in (see skill 03 for the mitigation).
+- No admin needed (same-user AtLogOn task, native PowerShell cmdlets — same pattern as skill 03's `Hermes_Gateway` task). `WorkingDirectory` is REQUIRED: the exe writes its `data\` folder relative to cwd. If `Register-ScheduledTask` is refused, use the Startup-folder fallback from skill 03.
+- Same honest caveat as skill 03 step 3: AtLogOn starts at SIGN-IN, not at power-on — after a Windows-Update reboot Pocket ID stays offline until someone logs in (skill 03 step 3 handles this).
 
 ### 10. HUMAN STEP — first-run account setup
 In a browser (on the PC or the phone, both on the tailnet), open:
@@ -119,7 +122,7 @@ Headless alternative (no browser): set `STATIC_API_KEY` (≥16 chars) in `.env`,
 2. Passkey login works from the browser.
 3. Register a test OIDC client per step 12 and complete a full login round-trip into a sample app ([agent must verify: pick a trivial OIDC test app — e.g. any app with SSO support the owner actually plans to use; no generic test app is specified in RESEARCH.md]).
 4. `tailscale serve status` shows the 1411 mapping; `hermes`-independent (Pocket ID keeps running).
-5. Reboot the PC, sign in, wait ~1 minute: Pocket ID is reachable again at the ts.net URL with NO manual start — autostart task fired (`schtasks /Run /TN PocketID` is only needed if it didn't; check with `schtasks /Query /TN PocketID`).
+5. Reboot the PC, sign in, wait ~1 minute: Pocket ID is reachable again at the ts.net URL with NO manual start — autostart task fired (`Start-ScheduledTask -TaskName PocketID` (or `schtasks /Run /TN PocketID`) is only needed if it didn't; check with `schtasks /Query /TN PocketID`).
 
 ## Rollback / Troubleshooting
 - `tailscale serve reset` — removes ALL serve mappings (nuclear). To drop only Pocket ID: `tailscale serve --https=443 off`.
